@@ -396,7 +396,8 @@ else:
             cf = dump(current_function)
             do_infer(cf)
             open("infer_success.txt", "w").write("success")
-            print("Success!")
+            import os
+            print(f"Success! {os.getcwd()}")
             break
         except:
             print(f"Failed {current_function}, trying next function")
