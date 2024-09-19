@@ -402,6 +402,6 @@ else:
             outfile = args[0] if len(args) > 0 else "infer_success.txt"
             open(outfile, "w").write("success")
             #break
-        except:
-            print(f"Failed {current_function}, trying next function")
+        except Exception as e:
+            print(f"{current_function} because {str(e)}, trying next function")
             continue
