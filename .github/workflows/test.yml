@@ -70,7 +70,7 @@ jobs:
         run: test -f data1.tar.bz2 || wget -O 'data1.tar.bz2' 'https://cmu.box.com/shared/static/nx9fyn8jx0i9p4bftw8f2giqlufnoyj5'
         
       - name: Extract model files
-        run: tar -xvj -C $GITHUB_WORKSPACE/dirty/
+        run: tar -xvjf data1.tar.bz2 -C $GITHUB_WORKSPACE/dirty/
 
       - name: Run DIRTY
         run: $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript $GITHUB_WORKSPACE/scripts/DIRTY_infer.py
