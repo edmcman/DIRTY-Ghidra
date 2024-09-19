@@ -21,10 +21,6 @@ try:
     from ghidra.program.database.data import PointerDB, ArrayDB, StructureDB, UnionDB, TypedefDB, FunctionDefinitionDB
 except ImportError:
     pass
-# try:
-#     import ida_typeinf  # type: ignore
-# except ImportError:
-#     print("Could not import ida_typeinf. Cannot parse IDA types.")
 
 
 class TypeLib:
