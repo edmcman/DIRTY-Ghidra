@@ -52,4 +52,4 @@ jobs:
         run: mkdir -p projects
 
       - name: Run DIRTY
-        run: $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects -import /bin/ls -postScript DIRTY.java -scriptPath $GITHUB_WORKSPACE/scripts/DIRTY_infer.py
+        run: $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript DIRTY.java -scriptPath $GITHUB_WORKSPACE/scripts/DIRTY_infer.py
