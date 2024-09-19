@@ -306,7 +306,15 @@ if not isRunningHeadless():
 else:
 
     print("We are in headless mode.  Pick a function!")
-    assert False
+
+    function_manager = currentProgram().getFunctionManager()
+    
+    # Get all functions as an iterator
+    function_iter = function_manager.getFunctions(True)
+
+    # Get the 3rd function
+    import itertools
+    current_function = itertools.islice(function_iter, 2, 3).__next__()
 
 #funcName = current_function.getName()
 
