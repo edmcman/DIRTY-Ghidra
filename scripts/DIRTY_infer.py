@@ -403,5 +403,5 @@ else:
             open(outfile, "w").write("success")
             #break
         except Exception as e:
-            print(f"{current_function} because {str(e)}, trying next function")
+            print(f"{current_function} because {e.__class__.__name__}: {str(e)}, trying next function")
             continue
