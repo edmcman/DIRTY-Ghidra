@@ -391,6 +391,8 @@ else:
     # Keep trying functions until we find one that works!  This is needed
     # because small/trivial functions will fail.
     for current_function in function_iter:
+        if current_function.isThunk() or current_function.isExternal():
+            continue
         print(f"Trying {current_function}")
         try:
             cf = dump(current_function)
