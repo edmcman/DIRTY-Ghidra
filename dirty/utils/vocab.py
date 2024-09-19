@@ -104,7 +104,6 @@ class VocabEntry:
     @classmethod
     def load(cls, path=None, params=None):
         if path:
-            print(path)
             params = json.load(open(path, "r"))
         else:
             assert params, "Params must be given when path is None!"
