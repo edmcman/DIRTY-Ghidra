@@ -25,9 +25,9 @@ types for their own binaries.  If that is you, follow these instructions:
 
 ## Requirements
 
-- Linux with Python 3.6/3.7/3.8
+- Linux with Python 3.10+
 - [PyTorch ≥ 1.5.1](https://pytorch.org/)
-- [Ghidrathon 3.0.1](https://github.com/mandiant/Ghidrathon)
+- [Ghidrathon >= 4.0.0](https://github.com/mandiant/Ghidrathon)
 - `pip install -r requirements.txt`
 
 ### Libraries
