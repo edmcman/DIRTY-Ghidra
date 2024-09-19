@@ -294,7 +294,7 @@ def test_types():
 #else:
 #    abort("Unable to find the executable in the JSON file.")
 
-if currentProgram() is not None:
+if not isRunningHeadless():
 
     current_location = currentLocation()
 
