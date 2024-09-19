@@ -395,8 +395,10 @@ else:
         try:
             cf = dump(current_function)
             do_infer(cf)
-            open("infer_success.txt", "w").write("success")
             print("Success!")
+            args = getScriptArgs()
+            outfile = args[0] if len(args) > 0 else "infer_success.txt"
+            open(outfile, "w").write("success")
             break
         except:
             print(f"Failed {current_function}, trying next function")
