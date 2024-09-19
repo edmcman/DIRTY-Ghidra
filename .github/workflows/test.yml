@@ -54,7 +54,7 @@ jobs:
           unzip Ghidrathon*.zip -d ghidrathon-tmp
           pip install -r ghidrathon-tmp/requirements.txt
           python ghidrathon-tmp/ghidrathon_configure.py $GHIDRA_INSTALL_DIR
-          unzip ghidrathon-tmp/Ghidrathon*.zip -D $GHIDRA_INSTALL_DIR/Ghidra/Extensions
+          unzip ghidrathon-tmp/Ghidrathon*.zip -d $GHIDRA_INSTALL_DIR/Ghidra/Extensions
       
       - name: Make projects directory
         run: mkdir -p projects
