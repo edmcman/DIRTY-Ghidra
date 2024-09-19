@@ -166,7 +166,11 @@ def find_type_in_ghidra_typemanager(name, dtm):
         return None
 
 def find_type_in_any_ghidra_typemanager(name):
-    dtms = state().getTool().getService(DataTypeManagerService).getDataTypeManagers()
+    tool = state().getTool()
+    if tool is not None:
+        dtms = state().getTool().getService(DataTypeManagerService).getDataTypeManagers()
+    else:
+        dtms = [currentProgram().getDataTypeManager()]
     for dtm in dtms:
         output = find_type_in_ghidra_typemanager(name, dtm)
         if output is not None:
