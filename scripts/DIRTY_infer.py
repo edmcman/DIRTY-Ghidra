@@ -316,74 +316,80 @@ else:
     import itertools
     current_function = itertools.islice(function_iter, 2, 3).__next__()
 
-#funcName = current_function.getName()
 
-cf = dump(current_function)
-#print(cf)
+def do_infer(cf):
 
-config = json.loads(_jsonnet.evaluate_file(DIRTY_CONFIG))
+    config = json.loads(_jsonnet.evaluate_file(DIRTY_CONFIG))
 
-# Set wd so the model can find data1/vocab.bpe10000
+    # Set wd so the model can find data1/vocab.bpe10000
 
-os.chdir(os.path.join(DIRTY_PATH, 'dirty'))
+    os.chdir(os.path.join(DIRTY_PATH, 'dirty'))
 
-model = TypeReconstructionModel.load_from_checkpoint(checkpoint_path=MODEL_CHECKPOINT, config=config) 
-model.eval()
+    model = TypeReconstructionModel.load_from_checkpoint(checkpoint_path=MODEL_CHECKPOINT, config=config) 
+    model.eval()
 
-model_output = utils.infer.infer(config, model, cf)
-print(model_output)
+    model_output = utils.infer.infer(config, model, cf)
+    print(model_output)
 
- # Set up the decompiler
-decompiler = DecompInterface()
-decompiler.openProgram(current_function.getProgram())
+    # Set up the decompiler
+    decompiler = DecompInterface()
+    decompiler.openProgram(current_function.getProgram())
 
-# Decompile the current function
-print("Decompiling function " + current_function.getName() + "...")
-results = decompiler.decompileFunction(current_function, 0, ConsoleTaskMonitor())
-if not results.decompileCompleted():
-    abort("Decompilation failed.")
+    # Decompile the current function
+    print("Decompiling function " + current_function.getName() + "...")
+    results = decompiler.decompileFunction(current_function, 0, ConsoleTaskMonitor())
+    if not results.decompileCompleted():
+        abort("Decompilation failed.")
 
-# Get the high-level representation of the function
-high_function = results.getHighFunction()
-if not high_function:
-    abort("Failed to get high-level function representation.")
+    # Get the high-level representation of the function
+    high_function = results.getHighFunction()
+    if not high_function:
+        abort("Failed to get high-level function representation.")
 
-# Example: rename a specific variable (change the criteria as needed)
-for var in high_function.getLocalSymbolMap().getSymbols():
+    # Example: rename a specific variable (change the criteria as needed)
+    for var in high_function.getLocalSymbolMap().getSymbols():
 
-    original_name = var.getName()
+        original_name = var.getName()
 
-    if original_name in model_output:
-        new_type_name, new_name = model_output[original_name]
-        if new_type_name != "disappear":
+        if original_name in model_output:
+            new_type_name, new_name = model_output[original_name]
+            if new_type_name != "disappear":
 
-            if new_name in ["<unk>", ""]:
-                new_name = original_name
+                if new_name in ["<unk>", ""]:
+                    new_name = original_name
 
-            if new_name != original_name:
-                print("Renaming " + original_name + " to " + new_name + ".")
+                if new_name != original_name:
+                    print("Renaming " + original_name + " to " + new_name + ".")
 
-            new_type = None
+                new_type = None
 
 
 
-            if new_type_name != "<unk>":
-                print(f"Attempting to retype {original_name}/{new_name} to {new_type_name}")
+                if new_type_name != "<unk>":
+                    print(f"Attempting to retype {original_name}/{new_name} to {new_type_name}")
+
+                    try:
+                        ti = find_type_by_name(new_type_name)
+                        new_type = build_ghidra_type(ti)
+                        print(f"Changing type of {original_name}/{new_name} to {new_type_name}: {new_type}")
+                    except Exception as e:
+                        print(f"Failed to find or build type {new_type_name} exception: {e}")
 
                 try:
-                    ti = find_type_by_name(new_type_name)
-                    new_type = build_ghidra_type(ti)
-                    print(f"Changing type of {original_name}/{new_name} to {new_type_name}: {new_type}")
+                    HighFunctionDBUtil.updateDBVariable(var, new_name, new_type, SourceType.USER_DEFINED)
                 except Exception as e:
-                    print(f"Failed to find or build type {new_type_name} exception: {e}")
-
-            try:
-                HighFunctionDBUtil.updateDBVariable(var, new_name, new_type, SourceType.USER_DEFINED)
-            except Exception as e:
-                print(f"Failed to update variable {original_name} exception: {e}")
+                    print(f"Failed to update variable {original_name} exception: {e}")
 
 
+            else:
+                print("Skipping disappear variable " + original_name + ".")
         else:
-            print("Skipping disappear variable " + original_name + ".")
-    else:
-        print("No new name/type for " + original_name + " in prediction.")
+            print("No new name/type for " + original_name + " in prediction.")
+
+try:
+    cf = dump(current_function)
+    do_infer(cf)
+except Exception as e:
+    print(f"Failed to infer: {e}")
+    sys.exit(1)
+#print(cf)
