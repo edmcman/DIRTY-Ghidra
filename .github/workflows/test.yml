@@ -60,8 +60,17 @@ jobs:
       - name: Make projects directory
         run: mkdir -p projects
 
+      - name: Cache model files
+        uses: actions/cache@v4
+        with:
+          path: data1.tar.bz2
+          key: data1.tar.bz2
+
       - name: Download model files
-        run: wget -qO- 'https://cmu.box.com/shared/static/nx9fyn8jx0i9p4bftw8f2giqlufnoyj5' | tar -xvj -C $GITHUB_WORKSPACE/dirty/
+        run: test -f data1.tar.bz2 || wget -O 'data1.tar.bz2' 'https://cmu.box.com/shared/static/nx9fyn8jx0i9p4bftw8f2giqlufnoyj5'
+        
+      - name: Extract model files
+        run: tar -xvj -C $GITHUB_WORKSPACE/dirty/
 
       - name: Run DIRTY
         run: $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript $GITHUB_WORKSPACE/scripts/DIRTY_infer.py
