@@ -381,7 +381,7 @@ if not isRunningHeadless():
 
 else:
 
-    print("We are in headless mode.  Pick a function!")
+    print("We are in headless mode.")
 
     function_manager = currentProgram().getFunctionManager()
     
@@ -396,6 +396,7 @@ else:
             cf = dump(current_function)
             do_infer(cf)
             open("infer_success.txt", "w").write("success")
+            print("Success!")
             break
         except:
             print(f"Failed {current_function}, trying next function")
