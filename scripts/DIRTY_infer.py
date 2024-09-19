@@ -389,6 +389,7 @@ def do_infer(cf):
 try:
     cf = dump(current_function)
     do_infer(cf)
+    open("infer_success.txt", "w").write("success")
 except Exception as e:
     print(f"Failed to infer: {e}")
     sys.exit(1)
