@@ -384,7 +384,8 @@ else:
     # Get all functions as an iterator
     function_iter = function_manager.getFunctions(True)
 
-    # Keep trying functions until we find one that works!
+    # Keep trying functions until we find one that works!  This is needed
+    # because small/trivial functions will fail.
     for current_function in function_iter:
         print(f"Trying {current_function}")
         try:
