@@ -399,7 +399,7 @@ else:
             args = getScriptArgs()
             outfile = args[0] if len(args) > 0 else "infer_success.txt"
             open(outfile, "w").write("success")
-            break
+            #break
         except:
             print(f"Failed {current_function}, trying next function")
             continue
