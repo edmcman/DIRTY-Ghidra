@@ -294,29 +294,6 @@ def test_types():
 #else:
 #    abort("Unable to find the executable in the JSON file.")
 
-if not isRunningHeadless():
-
-    current_location = currentLocation()
-
-    # Get the function containing this location.
-    current_function = getFunctionContaining(current_location.getAddress())
-
-    assert current_function is not None
-
-else:
-
-    print("We are in headless mode.  Pick a function!")
-
-    function_manager = currentProgram().getFunctionManager()
-    
-    # Get all functions as an iterator
-    function_iter = function_manager.getFunctions(True)
-
-    # Get the 3rd function
-    import itertools
-    current_function = itertools.islice(function_iter, 2, 3).__next__()
-
-
 def do_infer(cf):
 
     config = json.loads(_jsonnet.evaluate_file(DIRTY_CONFIG))
@@ -386,6 +363,35 @@ def do_infer(cf):
         else:
             print("No new name/type for " + original_name + " in prediction.")
 
-cf = dump(current_function)
-do_infer(cf)
-open("infer_success.txt", "w").write("success")
+if not isRunningHeadless():
+
+    current_location = currentLocation()
+
+    # Get the function containing this location.
+    current_function = getFunctionContaining(current_location.getAddress())
+
+    assert current_function is not None
+
+    cf = dump(current_function)
+    do_infer(cf)
+
+else:
+
+    print("We are in headless mode.  Pick a function!")
+
+    function_manager = currentProgram().getFunctionManager()
+    
+    # Get all functions as an iterator
+    function_iter = function_manager.getFunctions(True)
+
+    # Keep trying functions until we find one that works!
+    for current_function in function_iter:
+        print(f"Trying {current_function}")
+        try:
+            cf = dump(current_function)
+            do_infer(cf)
+            open("infer_success.txt", "w").write("success")
+            break
+        except:
+            print(f"Failed {current_function}, trying next function")
+            continue
