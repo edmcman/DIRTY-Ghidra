@@ -9,4 +9,4 @@ wandb
 webdataset==0.1.40
 pyelftools==0.29
 jsonlines
-numpy~=1.26
+numpy>=1.20,<2.0
