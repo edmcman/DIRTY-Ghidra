@@ -294,12 +294,19 @@ def test_types():
 #else:
 #    abort("Unable to find the executable in the JSON file.")
 
-current_location = currentLocation()
+if currentProgram() is not None:
 
-# Get the function containing this location.
-current_function = getFunctionContaining(current_location.getAddress())
+    current_location = currentLocation()
 
-assert current_function is not None
+    # Get the function containing this location.
+    current_function = getFunctionContaining(current_location.getAddress())
+
+    assert current_function is not None
+
+else:
+
+    print("We are in headless mode.  Pick a function!")
+    assert False
 
 #funcName = current_function.getName()
 
