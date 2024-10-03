@@ -209,9 +209,10 @@ def do_infer(cf, ghidra_function, redecompile=False):
     )
     model.eval()
 
-    model_output, example_info, other_outputs = utils.infer.infer(config, model, cf)
+    model_output, model_output_multi, example_info, other_outputs = utils.infer.infer(config, model, cf)
 
     output['model_output'] = model_output
+    output['model_output_multi'] = model_output_multi
     output['other_info'] = {'example_info': example_info, 'other_outputs': other_outputs}
 
     # Set up the decompiler

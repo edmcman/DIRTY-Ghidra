@@ -141,16 +141,20 @@ def infer(config, model, cf, binary_file=None):
         output = model(collated_example, return_non_best=True)
 
     var_names = [x[2:-2] for x in example.src_var_names]
-    var_types = example.src_var_types_str
-
     pred_names = output['rename_preds']
     pred_types = output['retype_preds']
 
+    all_pred_names = output['all_rename_preds']
+    all_pred_types = output['all_retype_preds']
+
     model_output = {oldname: (newtype, newname) for (oldname, newname, newtype) in zip(var_names, pred_names, pred_types)}
+
+    # Include multiple predictions...
+    model_output_multiprediction = {oldname: (newtypes, newnames) for (oldname, newnames, newtypes) in zip(var_names, all_pred_names, all_pred_types)}
 
     other_outputs = {k:v for k,v in output.items() if k not in ["rename_preds", "retype_preds"]}
 
-    return model_output, example.other_info, other_outputs
+    return model_output, model_output_multiprediction, example.other_info, other_outputs
 
 def main(args):
 
@@ -166,7 +170,7 @@ def main(args):
 
     model_output = infer(config, model, cf, binary_file=args['INPUT_JSON'])
 
-    print(f"The model output is: {model_output}")
+    print(f"The model output is: {model_output[0]}")
 
 
 if __name__ == "__main__":
