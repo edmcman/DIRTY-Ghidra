@@ -149,6 +149,10 @@ def infer(config, model, cf, binary_file=None):
 
     model_output = {oldname: (newtype, newname) for (oldname, newname, newtype) in zip(var_names, pred_names, pred_types)}
 
+    # DEBUG TEMP
+    print(all_pred_names)
+    print(len(all_pred_names))
+
     # Include multiple predictions...
     model_output_multiprediction = {oldname: (newtypes, newnames) for (oldname, newnames, newtypes) in zip(var_names, all_pred_names, all_pred_types)}
 
