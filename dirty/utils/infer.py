@@ -147,18 +147,19 @@ def infer(config, model, cf, binary_file=None):
     all_pred_names = output['all_rename_preds']
     all_pred_types = output['all_retype_preds']
 
-    model_output = {oldname: (newtype, newname) for (oldname, newname, newtype) in zip(var_names, pred_names, pred_types)}
+    def make_model_output(var_names, pred_names, pred_types):
+        return {oldname: (newtype, newname) for (oldname, newname, newtype) in zip(var_names, pred_names, pred_types)}
 
-    # DEBUG TEMP
-    print(all_pred_names)
-    print(len(all_pred_names))
+    model_output = make_model_output(var_names, pred_names, pred_types)
+    #{oldname: (newtype, newname) for (oldname, newname, newtype) in zip(var_names, pred_names, pred_types)}
 
-    # Include multiple predictions...
-    model_output_multiprediction = {oldname: (newtypes, newnames) for (oldname, newnames, newtypes) in zip(var_names, all_pred_names, all_pred_types)}
+    # Multi-predictions from beam search
+    # This is currently a list of mappings.  But maybe it should be a mapping to lists?
+    model_output_multi = [make_model_output(var_names, pred_names, pred_types) for pred_names, pred_types in zip(all_pred_names, all_pred_types)]
 
     other_outputs = {k:v for k,v in output.items() if k not in ["rename_preds", "retype_preds"]}
 
-    return model_output, model_output_multiprediction, example.other_info, other_outputs
+    return model_output, model_output_multi, example.other_info, other_outputs
 
 def main(args):
 
