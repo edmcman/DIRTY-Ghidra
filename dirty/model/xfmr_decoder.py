@@ -691,6 +691,8 @@ class XfmrInterleaveDecoder(XfmrDecoder):
                 hyp = torch.tensor(hyp).view(-1, 2).t()
                 return hyp
 
+            # The batch is by example, and the time steps of the hypothesis are
+            # variable/type predictions.
             hyp = get(0)
 
             all_type_hyps.append(hyp[0])
@@ -701,11 +703,12 @@ class XfmrInterleaveDecoder(XfmrDecoder):
                 all_hyps = (get(i) for i in range(beam_size))
                 all_hyps = ((tup[0], tup[1]) for tup in all_hyps)
                 all_hyps = zip(*all_hyps)
-                all_hyps = tuple(torch.cat(x) for x in all_hyps)
+                all_hyps = tuple(torch.stack(x) for x in all_hyps)
+
                 all_nonbest_type_hyps.append(all_hyps[0])
                 all_nonbest_name_hyps.append(all_hyps[1])
 
         if return_non_best:
-            return torch.cat(all_type_hyps), torch.cat(all_name_hyps), torch.stack(all_nonbest_type_hyps), torch.stack(all_nonbest_name_hyps)
+            return torch.cat(all_type_hyps), torch.cat(all_name_hyps), torch.cat(all_nonbest_type_hyps), torch.cat(all_nonbest_name_hyps)
         else:
             return torch.cat(all_type_hyps), torch.cat(all_name_hyps)
