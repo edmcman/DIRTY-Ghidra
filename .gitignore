@@ -145,3 +145,7 @@ exp_runs/
 # wandb
 dirty/wandb/
 dirty/multitask-greedy.xfmr.jsonnet
+dirty/data1
+dirty/struct_files.txt
+dirty/eval.pkl
+dirty/forward.pkl
