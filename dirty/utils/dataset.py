@@ -301,13 +301,41 @@ class Dataset(wds.Dataset):
 
         stack_pos = [x.offset for x in example.source if isinstance(x, Stack)]
         stack_start_pos = max(stack_pos) if stack_pos else None
-        for loc in locs[: self.max_num_var]:
-            src_var = example.source[loc]
-            tgt_var = example.target[loc]
+
+        def var_loc_in_func(loc):
+            # TODO: fix the magic number (1030) for computing vocabulary idx
+            # TODO: add vocabulary for unknown locations?
+            if isinstance(loc, Register):
+                return 1030 + self.vocab.regs[loc.name]
+            else:
+                from utils.vocab import VocabEntry
+
+                return (
+                    3 + stack_start_pos - loc.offset
+                    if stack_start_pos - loc.offset < VocabEntry.MAX_STACK_SIZE
+                    else 2
+                )
+
+        def for_src_var(loc, src_var):
             src_var_names.append(f"@@{src_var.name}@@")
-            tgt_var_names.append(f"@@{tgt_var.name}@@")
             src_var_types_id.append(types_model.lookup_decomp(str(src_var.typ)))
             src_var_types_str.append(str(src_var.typ))
+            # Memory
+            # 0: absolute location of the variable in the function, e.g.,
+            #   for registers: Reg 56
+            #   for stack: relative position to the first variable
+            # 1: size of the type
+            # 2, 3, ...: start offset of fields in the type
+
+            src_var_locs_encoded.append(
+                [var_loc_in_func(loc)]
+                + types_model.encode_memory(
+                    (src_var.typ.size,) + src_var.typ.start_offsets()
+                )
+            )
+
+        def for_tgt_var(loc, tgt_var):
+            tgt_var_names.append(f"@@{tgt_var.name}@@")
             tgt_var_types_id.append(types_model[str(tgt_var.typ)])
             tgt_var_types_str.append(str(tgt_var.typ))
             if types_model[str(tgt_var.typ)] == types_model.unk_id:
@@ -317,33 +345,13 @@ class Dataset(wds.Dataset):
             tgt_var_type_sizes.append(len(subtypes))
             tgt_var_subtypes += subtypes
             tgt_var_type_objs.append(tgt_var.typ)
-            # Memory
-            # 0: absolute location of the variable in the function, e.g.,
-            #   for registers: Reg 56
-            #   for stack: relative position to the first variable
-            # 1: size of the type
-            # 2, 3, ...: start offset of fields in the type
-            def var_loc_in_func(loc):
-                # TODO: fix the magic number (1030) for computing vocabulary idx
-                # TODO: add vocabulary for unknown locations?
-                if isinstance(loc, Register):
-                    return 1030 + self.vocab.regs[loc.name]
-                else:
-                    from utils.vocab import VocabEntry
-
-                    return (
-                        3 + stack_start_pos - loc.offset
-                        if stack_start_pos - loc.offset < VocabEntry.MAX_STACK_SIZE
-                        else 2
-                    )
-
-            src_var_locs_encoded.append(
-                [var_loc_in_func(loc)]
-                + types_model.encode_memory(
-                    (src_var.typ.size,) + src_var.typ.start_offsets()
-                )
-            )
             tgt_names.append(tgt_var.name)
+
+        for loc in locs[: self.max_num_var]:
+            for src_var in example.source[loc]:
+                for_src_var(loc, src_var)
+            for tgt_var in example.target[loc]:
+                for_tgt_var(loc, tgt_var)
 
         setattr(example, "src_var_names", src_var_names)
         setattr(example, "tgt_var_names", tgt_var_names)
