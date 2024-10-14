@@ -122,9 +122,7 @@ def infer(config, model, cf, binary_file=None):
     #print(f"example src: {example.source}")
     #print(f"example target: {example.target}")
 
-    print("XXX Calling annotate")
     example = dataset._annotate(example)
-    print("XXX calling collate")
 
     collated_example = dataset.collate_fn([example])
     collated_example, _garbage = collated_example
