@@ -164,7 +164,7 @@ class Example:
         Variables not appearing in code (no way to get representation);
         Target variables not appearing in source (useless ground truth);
         """
-        ret: Mapping[Location, Set[Variable]] = defaultdict(set)
+        ret: Mapping[Location, List[Variable]] = defaultdict(list)
 
         filtered = set()
 
@@ -183,7 +183,7 @@ class Example:
                 if filter_non_user_names and not var.user:
                     continue
                 filtered.remove((location, var))
-                ret[location].add(var)
+                ret[location].append(var)
         return ret, {x.name: loc.json_key() for loc, x in filtered}
 
     @property
@@ -295,13 +295,10 @@ class Dataset(wds.Dataset):
         tgt_var_type_objs = []
         src_var_locs_encoded = []
         tgt_names = []
-        # variables on registers first, followed by those on stack
-        locs = sorted(
-            example.source,
-            key=lambda x: sub_tokens.index(f"@@{example.source[x].name}@@")
-            if f"@@{example.source[x].name}@@" in sub_tokens
-            else self.max_src_tokens_len,
-        )
+
+
+        locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
+
         stack_pos = [x.offset for x in example.source if isinstance(x, Stack)]
         stack_start_pos = max(stack_pos) if stack_pos else None
         for loc in locs[: self.max_num_var]:
