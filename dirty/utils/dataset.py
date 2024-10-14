@@ -1,6 +1,7 @@
 import glob
 import json
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Union
+from collections import defaultdict
 
 import _jsonnet
 import torch
@@ -74,9 +75,11 @@ class Example:
         }
 
     @classmethod
-    def from_cf(cls, cf: CollectedFunction, use_disappear=False, **kwargs):
-        """Convert from a decoded CollectedFunction.  Generally set
-        use_disappear=True for prediction, and False for training."""
+    def from_cf(cls, cf: CollectedFunction, prediction=False, **kwargs):
+        """Convert from a decoded CollectedFunction.
+        """
+        use_disappear = prediction
+        filter_dups = not prediction
         name = cf.decompiler.name
         raw_code = cf.decompiler.raw_code
         code_tokens = tokenize_raw_code(raw_code)
@@ -104,8 +107,8 @@ class Example:
         # Remove variables that overlap on memory or don't appear in the code tokens
         source_code_tokens_set = set(code_tokens[code_tokens.index("{"):])
 
-        source, source_filtered_out = Example.filter(source, source_code_tokens_set)
-        target, target_filtered_out = Example.filter(target, None, set(source.keys()), filter_non_user_names=True)
+        source, source_filtered_out = Example.filter(source, source_code_tokens_set, filter_out_duplicate_locations=filter_dups)
+        target, target_filtered_out = Example.filter(target, None, set(source.keys()), filter_non_user_names=True, filter_out_duplicate_locations=filter_dups)
 
         # Optionally assign type "Disappear" to variables not existing in the
         # ground truth.  EJS thinks this may be harmful since the model learns
@@ -123,9 +126,10 @@ class Example:
 
         varnames = set()
         # Add special tokens to variable names
-        for var in source.values():
-            varname = var.name
-            varnames.add(varname)
+        for varlist in source.values():
+            for var in varlist:
+                varname = var.name
+                varnames.add(varname)
         for idx in range(len(code_tokens)):
             if code_tokens[idx] in varnames:
                 code_tokens[idx] = f"@@{code_tokens[idx]}@@"
@@ -151,33 +155,35 @@ class Example:
         mapping: Mapping[Location, Set[Variable]],
         code_tokens: Optional[Set[str]] = None,
         locations: Optional[Set[Location]] = None,
-        filter_non_user_names: bool = False
-    ) -> Mapping[Location, Variable]:
+        filter_non_user_names: bool = False,
+        filter_out_duplicate_locations: bool = True
+    ) -> Mapping[Location, Set[Variable]]:
         """Discard and leave these for future work:
 
         Multiple variables sharing a memory location (no way to determine ground truth);
         Variables not appearing in code (no way to get representation);
         Target variables not appearing in source (useless ground truth);
         """
-        ret: Mapping[Location, Set[Variable]] = {}
+        ret: Mapping[Location, Set[Variable]] = defaultdict(set)
 
         filtered = set()
 
         for location, variable_set in mapping.items():
             for v in variable_set:
                 filtered.add((location, v))
-            if len(variable_set) > 1:
+            if len(variable_set) > 1 and filter_out_duplicate_locations:
                 print(f"Warning: Ignoring location {location} with multiple variables {variable_set}")
                 continue
-            var = list(variable_set)[0]
-            if code_tokens is not None and not var.name in code_tokens:
-                continue
-            if locations is not None and not location in locations:
-                continue
-            if filter_non_user_names and not var.user:
-                continue
-            filtered.remove((location, var))
-            ret[location] = var
+
+            for var in variable_set:
+                if code_tokens is not None and not var.name in code_tokens:
+                    continue
+                if locations is not None and not location in locations:
+                    continue
+                if filter_non_user_names and not var.user:
+                    continue
+                filtered.remove((location, var))
+                ret[location].add(var)
         return ret, {x.name: loc.json_key() for loc, x in filtered}
 
     @property

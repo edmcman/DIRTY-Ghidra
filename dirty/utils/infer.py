@@ -106,7 +106,7 @@ def ghidra_obtain_cf(ghidra_func):
 def infer(config, model, cf, binary_file=None):
 
     example = Example.from_cf(
-        cf, use_disappear=True, binary_file=binary_file, max_stack_length=1024, max_type_size=1024
+        cf, prediction=True, binary_file=binary_file, max_stack_length=1024, max_type_size=1024
     )
     #print(example)
 

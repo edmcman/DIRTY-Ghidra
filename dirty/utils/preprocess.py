@@ -49,7 +49,7 @@ def example_generator(json_str_list):
 
         example = Example.from_cf(
             cf,
-            use_disappear=False,
+            prediction=False,
             binary_file=meta,
             max_stack_length=1024,
             max_type_size=1024,
