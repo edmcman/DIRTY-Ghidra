@@ -119,7 +119,7 @@ class Example:
         for loc in list(source.keys()):
             if use_disappear:
                 if loc not in target.keys():
-                    target[loc] = Variable(Disappear(), "disappear", False)
+                    target[loc] = [Variable(Disappear(), "disappear", False)]
             else:
                 if loc in source.keys() and loc not in target.keys():
                     del source[loc]
@@ -299,7 +299,7 @@ class Dataset(wds.Dataset):
 
         locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
 
-        stack_pos = [x.offset for x in example.source if isinstance(x, Stack)]
+        stack_pos = [x.offset for x in example.source.keys() if isinstance(x, Stack)]
         stack_start_pos = max(stack_pos) if stack_pos else None
 
         def var_loc_in_func(loc):
