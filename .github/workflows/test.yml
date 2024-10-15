@@ -95,10 +95,11 @@ jobs:
 
       - name: Preprocess dataset
         run: |
+          set -ex
           cd $GITHUB_WORKSPACE/dirty
           python -m utils.preprocess $DATA_DIR/unprocessed $DATA_DIR/unprocessed/files.txt $DATA_DIR/processed
-          mv data1 data1.old || true
+          mv data1 data1.old 2>/dev/null || true
           mkdir data1
-          python -m utils.vocab --use-bpe $DATA_DIR/processed/'train-*.tar' $DATA_DIR/processed/typelib.json data1/
+          python -m utils.vocab --use-bpe "$DATA_DIR/processed/"'train-*.tar' "$DATA_DIR/processed/typelib.json" data1/
         env:
           DATA_DIR: ${{ runner.temp }}/data
