@@ -139,6 +139,11 @@ class Example:
             'target_filtered': target_filtered_out,
         }
 
+        valid = source and "halt_baddata" not in source_code_tokens_set
+
+        if not source:
+            print(f"DEBUG not valid because source = {source}")
+
         return cls(
             name,
             code_tokens,
