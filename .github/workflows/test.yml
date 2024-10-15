@@ -1,4 +1,4 @@
-name: Test DIRTY Ghidra's training ability
+name: Test DIRTY Ghidra
 
 on:
   push:
@@ -8,7 +8,6 @@ on:
 
 jobs:
   test-train:
-    # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -45,3 +44,34 @@ jobs:
           python -m utils.vocab --size=164 --use-bpe "$DATA_DIR/processed/"'train-*.tar' "$DATA_DIR/processed/typelib.json" data1/vocab.bpe10000
         env:
           DATA_DIR: ${{ runner.temp }}/data
+  test-inference:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Install huggingface-cli
+        run: pip install huggingface_hub[cli]
+
+      - name: Cache model files
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/model-dl
+          key: hf-model-dl
+
+      - name: Download model files
+        run: huggingface-cli download --repo-type model ejschwartz/dirty-ghidra --local-dir $MODEL_DL_DIR && cp -R $MODEL_DL_DIR/data1 $GITHUB_WORKSPACE/dirty/data1
+        env:
+          MODEL_DL_DIR: ${{ runner.temp }}/model-dl
+
+      - name: Run DIRTY inference
+        run: |
+          $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript $GITHUB_WORKSPACE/scripts/DIRTY_infer.py $(pwd)/infer_success.txt
+          test -f infer_success.txt
