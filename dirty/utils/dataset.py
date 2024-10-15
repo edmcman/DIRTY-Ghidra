@@ -107,6 +107,8 @@ class Example:
         # Remove variables that overlap on memory or don't appear in the code tokens
         source_code_tokens_set = set(code_tokens[code_tokens.index("{"):])
 
+        print(f"DEBUG before {source}")
+
         source, source_filtered_out = Example.filter(source, source_code_tokens_set, filter_out_duplicate_locations=filter_dups)
         target, target_filtered_out = Example.filter(target, None, set(source.keys()), filter_non_user_names=True, filter_out_duplicate_locations=filter_dups)
 
