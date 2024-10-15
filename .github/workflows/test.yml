@@ -82,6 +82,9 @@ jobs:
       - name: Generate dataset
         run: |
           mkdir -p $DATASET_DIR
+          echo $PATH # delete me
+          which mkdir #delete me
+          which find # delete me
           find /bin -type f | head -n 5 | xargs -I {} cp {} $DATASET_DIR
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
