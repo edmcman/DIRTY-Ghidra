@@ -15,12 +15,15 @@ runs:
     - uses: antoniovazquezblanco/setup-ghidra@v2.0.4
 
     - name: Upgrade pip
+      shell: bash
       run: python -m pip install --upgrade pip setuptools wheel
 
     - name: Install apt dependencies
+      shell: bash
       run: sudo apt-get install -y pkg-config libsentencepiece-dev libprotobuf-dev
 
     - name: Install dependencies
+      shell: bash
       run: pip install -r requirements.txt
 
     - name: Download Ghidrathon
@@ -34,6 +37,7 @@ runs:
           fileName: '*.zip'
 
     - name: Install Ghidrathon
+      shell: bash
       run: |
         mkdir ghidrathon-tmp
         unzip Ghidrathon*.zip -d ghidrathon-tmp
@@ -43,5 +47,6 @@ runs:
         #$GHIDRA_INSTALL_DIR/support/analyzeHeadless projects TmpProject -import /bin/ls
     
     - name: Make projects directory
+      shell: bash
       run: mkdir -p projects
 
