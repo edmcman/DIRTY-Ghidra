@@ -271,7 +271,8 @@ if __name__ == "__main__":
                     filter(lambda x: isinstance(x, Register), example.target.keys()),
                 )
             )
-            name_counter.update(map(lambda x: x.name, example.target.values()))
+            for varlist in example.target.values():
+                name_counter.update(map(lambda x: x.name, varlist))
             for token in code_tokens:
                 if token.startswith("@@") and token.endswith("@@"):
                     identifier_names.add(token)
