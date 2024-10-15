@@ -10,7 +10,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from utils.code_processing import tokenize_raw_code
 from utils.ghidra_function import CollectedFunction
-from utils.ghidra_variable import Location, Variable, location_from_json_key, Register, Stack
+from utils.ghidra_variable import Location, Variable, Unknown, location_from_json_key, Register, Stack
 from utils.ghidra_types import TypeLibCodec, Disappear
 
 
@@ -307,6 +307,8 @@ class Dataset(wds.Dataset):
             # TODO: add vocabulary for unknown locations?
             if isinstance(loc, Register):
                 return 1030 + self.vocab.regs[loc.name]
+            elif isinstance(loc, Unknown):
+                return 2 # unknown
             else:
                 from utils.vocab import VocabEntry
 
