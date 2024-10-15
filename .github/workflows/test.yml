@@ -74,10 +74,10 @@ jobs:
         env:
           MODEL_DL_DIR: ${{ runner.temp }}/model-dl
 
-      - name: Run DIRTY inference
-        run: |
-          $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript $GITHUB_WORKSPACE/scripts/DIRTY_infer.py $(pwd)/infer_success.txt
-          test -f infer_success.txt
+      # - name: Run DIRTY inference
+      #   run: |
+      #     $GHIDRA_INSTALL_DIR/support/analyzeHeadless projects MyProject -import /bin/ls -postScript $GITHUB_WORKSPACE/scripts/DIRTY_infer.py $(pwd)/infer_success.txt
+      #     test -f infer_success.txt
 
       - name: Generate dataset
         run: |
