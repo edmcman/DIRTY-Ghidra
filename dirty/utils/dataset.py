@@ -410,7 +410,7 @@ class Dataset(wds.Dataset):
         src_type_id = pad_sequence(src_type_ids, batch_first=True)
         tgt_type_ids = [torch.tensor(e.tgt_var_types, dtype=torch.long) for e in examples]
         target_type_id = pad_sequence(tgt_type_ids, batch_first=True)
-        assert target_type_id.shape == variable_mention_num.shape
+        assert target_type_id.shape == variable_mention_num.shape, f"{target_type_id.shape} != {variable_mention_num.shape}"
 
         subtype_ids = [
             torch.tensor(e.tgt_var_subtypes, dtype=torch.long) for e in examples
