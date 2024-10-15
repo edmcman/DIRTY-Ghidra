@@ -12,7 +12,7 @@ from typing import Optional
 
 from utils.ghidra_function import Function, CollectedFunction
 from utils.ghidra_types import TypeLib, TypeInfo
-from utils.ghidra_variable import Location, Stack, Register, Variable
+from utils.ghidra_variable import Location, Stack, Register, Unknown, Variable
 from utils.dataset import Example, Dataset
 from utils.code_processing import canonicalize_code
 
@@ -51,9 +51,12 @@ def ghidra_obtain_cf(ghidra_func):
             elif storage.isRegisterStorage():
                 loc = Register(storage.getRegister().getName())
             else:
-                print(f"Warning: Unknown storage type for {v} {v.getName()}: {storage}")
-            if loc is not None:
-                collected_vars[loc].add(Variable(typ=typ, name=v.getName(), user=False))
+                loc = Unknown(storage.toString())
+
+            assert loc is not None
+
+            collected_vars[loc].add(Variable(typ=typ, name=v.getName(), user=False))
+
         return collected_vars
 
     decomp = DecompInterface()
