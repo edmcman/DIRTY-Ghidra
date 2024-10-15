@@ -81,6 +81,7 @@ jobs:
 
       - name: Generate dataset
         run: |
+          set -ex
           mkdir -p $DATASET_DIR
           cd $DATASET_DIR
           # Create some dummy programs
@@ -88,6 +89,8 @@ jobs:
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --verbose --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
           python gen_names.py $DATA_DIR/unprocessed
+          cat files.txt
+          find $DATA_DIR/unprocessed -type f
           mv files.txt $DATA_DIR/unprocessed/files.txt
         env:
           DATASET_DIR: ${{ runner.temp }}/dataset
