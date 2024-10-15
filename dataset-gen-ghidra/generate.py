@@ -144,6 +144,7 @@ class Runner(object):
             try:
                 dwarfinfo = elffile.get_dwarf_info()
             except:
+                print(f"Error extracting dwarf info from {filepath}")
                 return set()
 
             for CU in dwarfinfo.iter_CUs():
@@ -157,7 +158,6 @@ class Runner(object):
             print(variable_names)
             #print(len(variable_names))
             return variable_names
-            pass
 
     def run_one(self, args: Tuple[str, str]) -> None:
         path, binary = args
