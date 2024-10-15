@@ -1,0 +1,46 @@
+name: Test DIRTY Ghidra's training ability
+
+on:
+  push:
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  test-train:
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - name: Setup
+        uses: ./.github/actions/setup.yml
+
+      - name: Generate dataset
+        run: |
+          set -ex
+          mkdir -p $DATASET_DIR
+          cd $DATASET_DIR
+          # Create some dummy programs
+          for n in $(seq 10); do echo -e "#include <stdio.h>\nint main(int argc, const char** argv) { printf(\"%d %d\\\\n\", $n, argc); }" > s$n.c; gcc -g s$n.c -o s$n; rm s$n.c; done
+          cd $GITHUB_WORKSPACE/dataset-gen-ghidra
+          python generate.py --verbose --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
+          cd $DATA_DIR/unprocessed && python $GITHUB_WORKSPACE/dataset-gen-ghidra/gen_names.py $DATA_DIR/unprocessed
+        env:
+          DATASET_DIR: ${{ runner.temp }}/dataset
+          DATA_DIR: ${{ runner.temp }}/data
+
+      - name: Preprocess dataset
+        run: |
+          set -ex
+          cd $GITHUB_WORKSPACE/dirty
+          python -m utils.preprocess $DATA_DIR/unprocessed $DATA_DIR/unprocessed/files.txt $DATA_DIR/processed
+          mv data1 data1.old 2>/dev/null || true
+          mkdir data1
+          python -m utils.vocab --size=164 --use-bpe "$DATA_DIR/processed/"'train-*.tar' "$DATA_DIR/processed/typelib.json" data1/vocab.bpe10000
+        env:
+          DATA_DIR: ${{ runner.temp }}/data
