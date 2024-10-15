@@ -85,6 +85,18 @@ jobs:
           find /bin -type f | head -n 5 | xargs -I {} cp {} $DATASET_DIR
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
+          python gen_names.py $DATA_DIR/unprocessed
+          mv files.txt $DATA_DIR/unprocessed.txt
         env:
           DATASET_DIR: ${{ runner.temp }}/dataset
+          DATA_DIR: ${{ runner.temp }}/data
+
+      - name: Preprocess dataset
+        run: |
+          cd $GITHUB_WORKSPACE/dirty
+          python -m utils.preprocess $DATA_DIR/unprocessed $DATA_DIR/unprocessed/files.txt $DATA_DIR/processed
+          mv data1 data1.old
+          mkdir data1
+          python -m utils.vocab --use-bpe $DATA_DIR/processed/'train-*.tar' $DATA_DIR/processed/typelib.json data1/
+        env:
           DATA_DIR: ${{ runner.temp }}/data
