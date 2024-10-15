@@ -42,12 +42,12 @@ class Example:
     @classmethod
     def from_json(cls, d: Dict):
         source = {
-            location_from_json_key(loc): Variable.from_json(var)
-            for loc, var in d["source"].items()
+            location_from_json_key(loc): [Variable.from_json(var) for var in varlist]
+            for loc, varlist in d["source"].items()
         }
         target = {
-            location_from_json_key(loc): Variable.from_json(var)
-            for loc, var in d["target"].items()
+            location_from_json_key(loc): [Variable.from_json(var) for var in varlist]
+            for loc, varlist in d["target"].items()
         }
 
         # It seems like other code assumes the number of source and target
@@ -65,8 +65,8 @@ class Example:
 
     def to_json(self):
         assert self._is_valid
-        source = {loc.json_key(): var.to_json() for loc, var in self.source.items()}
-        target = {loc.json_key(): var.to_json() for loc, var in self.target.items()}
+        source = {loc.json_key(): [var.to_json() for var in varlist] for loc, varlist in self.source.items()}
+        target = {loc.json_key(): [var.to_json() for var in varlist] for loc, varlist in self.target.items()}
         return {
             "name": self.name,
             "code_tokens": self.code_tokens,
