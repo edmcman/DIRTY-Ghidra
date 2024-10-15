@@ -110,6 +110,7 @@ class Example:
         print(f"DEBUG before {source}")
 
         source, source_filtered_out = Example.filter(source, source_code_tokens_set, filter_out_duplicate_locations=filter_dups)
+        print(f"DEBUG after {source}")
         target, target_filtered_out = Example.filter(target, None, set(source.keys()), filter_non_user_names=True, filter_out_duplicate_locations=filter_dups)
 
         # Optionally assign type "Disappear" to variables not existing in the
