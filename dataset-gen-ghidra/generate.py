@@ -111,6 +111,8 @@ class Runner(object):
                       '-max-cpu', "3", '-deleteProject']
         # idacall = [self.ida, "-B", f"-S{script}", file_name]
         output = ""
+        if self.verbose:
+            print(f"Running {ghidracall}")
         try:
             p = subprocess.Popen(ghidracall, env=env, start_new_session=True)
             p.wait(timeout=timeout)
@@ -194,6 +196,8 @@ class Runner(object):
                         print(f"{prefix} types already collected, skipping")
                 else:
                     # Collect from original
+                    if self.verbose:
+                        print(f"Collecting debug information")
                     subprocess.check_output(["cp", file_path, orig.name])
 
                     var_set = self.extract_dwarf_var_names(os.path.join(path, orig.name))
@@ -206,6 +210,8 @@ class Runner(object):
                         if self.verbose:
                             print(f"Unable to collect debug information for {prefix}")
                 # Dump trees
+                if self.verbose:
+                    print(f"Dumping trees")
                 pickle_file = os.path.join(path, stripped.name) + ".p"
                 pickle.dump(set(), open(pickle_file, 'wb'))
                 self.run_decompiler(
