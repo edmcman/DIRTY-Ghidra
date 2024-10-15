@@ -15,7 +15,6 @@ from multiprocessing import Pool
 from typing import Iterable, Tuple
 
 from elftools.elf.elffile import ELFFile
-from elftools.common.exceptions import ELFRelocationError
 
 class Runner(object):
     file_dir = os.path.dirname(os.path.abspath(__file__))
