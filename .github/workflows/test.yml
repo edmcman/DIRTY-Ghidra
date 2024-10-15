@@ -60,19 +60,19 @@ jobs:
       - name: Make projects directory
         run: mkdir -p projects
 
-      - name: Install huggingface-cli
-        run: pip install huggingface_hub[cli]
+      # - name: Install huggingface-cli
+      #   run: pip install huggingface_hub[cli]
 
-      - name: Cache model files
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/model-dl
-          key: hf-model-dl
+      # - name: Cache model files
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ runner.temp }}/model-dl
+      #     key: hf-model-dl
 
-      - name: Download model files
-        run: huggingface-cli download --repo-type model ejschwartz/dirty-ghidra --local-dir $MODEL_DL_DIR && cp -R $MODEL_DL_DIR/data1 $GITHUB_WORKSPACE/dirty/data1
-        env:
-          MODEL_DL_DIR: ${{ runner.temp }}/model-dl
+      # - name: Download model files
+      #   run: huggingface-cli download --repo-type model ejschwartz/dirty-ghidra --local-dir $MODEL_DL_DIR && cp -R $MODEL_DL_DIR/data1 $GITHUB_WORKSPACE/dirty/data1
+      #   env:
+      #     MODEL_DL_DIR: ${{ runner.temp }}/model-dl
 
       # - name: Run DIRTY inference
       #   run: |
