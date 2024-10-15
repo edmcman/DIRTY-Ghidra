@@ -317,6 +317,7 @@ class Dataset(wds.Dataset):
                 )
 
         def for_src_var(loc, src_var):
+            nonlocal src_var_names, src_var_types_id, src_var_types_str, src_var_locs_encoded
             src_var_names.append(f"@@{src_var.name}@@")
             src_var_types_id.append(types_model.lookup_decomp(str(src_var.typ)))
             src_var_types_str.append(str(src_var.typ))
@@ -335,6 +336,7 @@ class Dataset(wds.Dataset):
             )
 
         def for_tgt_var(loc, tgt_var):
+            nonlocal tgt_var_names, tgt_var_types_id, tgt_var_types_str, tgt_var_subtypes, tgt_var_type_sizes, tgt_var_type_objs, tgt_names
             tgt_var_names.append(f"@@{tgt_var.name}@@")
             tgt_var_types_id.append(types_model[str(tgt_var.typ)])
             tgt_var_types_str.append(str(tgt_var.typ))
