@@ -25,7 +25,6 @@ class CollectDebug(Collector):
         """Dumps the collected functions to the file specified by the environment
         variable `FUNCTIONS`.
         """
-        print("Attempting to write functions")
         with open(os.environ["FUNCTIONS"], "wb") as functions_fh:
             pickle.dump(self.functions, functions_fh)
             functions_fh.flush()
