@@ -14,13 +14,12 @@ from ghidra.program.model.data import (
 from ghidra.app.services import DataTypeManagerService
 from ghidra.program.model.address import Address
 import json
-import random
-from collections import defaultdict
 import sys
 import os
 import _jsonnet
 import pathlib
 import tqdm
+import traceback
 
 DIRTY_PATH = pathlib.Path(os.path.realpath(__file__)).parent.parent.resolve()
 
@@ -372,4 +371,5 @@ else:
                 print(
                     f"{ghidra_function} failed because {e.__class__.__name__}: {str(e)}, trying next function"
                 )
+                traceback.print_exc()
                 continue
