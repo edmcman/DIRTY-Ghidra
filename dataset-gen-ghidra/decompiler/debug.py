@@ -18,6 +18,7 @@ class CollectDebug(Collector):
     """Class for collecting debug information"""
 
     def __init__(self):
+        print("Initializing CollectDebug")
         self.functions: Dict[int, Function] = dict()
         super().__init__()
 
