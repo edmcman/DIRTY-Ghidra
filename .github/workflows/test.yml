@@ -88,7 +88,7 @@ jobs:
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --verbose --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
           python gen_names.py $DATA_DIR/unprocessed
-          mv files.txt $DATA_DIR/unprocessed.txt
+          mv files.txt $DATA_DIR/unprocessed/files.txt
         env:
           DATASET_DIR: ${{ runner.temp }}/dataset
           DATA_DIR: ${{ runner.temp }}/data
