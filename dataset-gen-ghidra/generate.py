@@ -137,14 +137,16 @@ class Runner(object):
         with open(filepath, 'rb') as f:
             elffile = ELFFile(f)
             if not elffile.has_dwarf_info():
-                return set()
+                if self.verbose:
+                    print(f"No dwarf info in {filepath}")
+                return None
             
             # for some reason, this is throwing an exception, give it if it does so
             try:
                 dwarfinfo = elffile.get_dwarf_info()
             except:
                 print(f"Error extracting dwarf info from {filepath}")
-                return set()
+                return None
 
             for CU in dwarfinfo.iter_CUs():
                 for DIE in CU.iter_DIEs():
@@ -154,8 +156,8 @@ class Runner(object):
                     for attr in DIE.attributes.values():
                         if attr.name == "DW_AT_name":
                             variable_names.add(attr.value.decode())
-            print(variable_names)
-            #print(len(variable_names))
+            if self.verbose:
+                print(f"Extracted variable names: {variable_names}")
             return variable_names
 
     def run_one(self, args: Tuple[str, str]) -> None:
