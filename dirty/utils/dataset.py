@@ -107,13 +107,8 @@ class Example:
         # Remove variables that overlap on memory or don't appear in the code tokens
         source_code_tokens_set = set(code_tokens[code_tokens.index("{"):])
 
-        print(f"DEBUG before source {source}")
-
         source, source_filtered_out = Example.filter(source, source_code_tokens_set, filter_out_duplicate_locations=filter_dups)
-        print(f"DEBUG after source {source}")
-        print(f"DEBUG before target {target}")
         target, target_filtered_out = Example.filter(target, None, set(source.keys()), filter_non_user_names=True, filter_out_duplicate_locations=filter_dups)
-        print(f"DEBUG after target {target}")
 
         # Optionally assign type "Disappear" to variables not existing in the
         # ground truth.  EJS thinks this may be harmful since the model learns
@@ -143,11 +138,6 @@ class Example:
             'source_filtered': source_filtered_out,
             'target_filtered': target_filtered_out,
         }
-
-        valid = source and "halt_baddata" not in source_code_tokens_set
-
-        if not source:
-            print(f"DEBUG not valid because source = {source}")
 
         return cls(
             name,
