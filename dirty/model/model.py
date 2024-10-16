@@ -489,7 +489,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 preds,
                 targets,
                 num_classes=len(self.vocab.types if task == "retype" else self.vocab.names),
-                class_reduction="macro",
+                average="macro",
             ),
         )
         # func acc
@@ -543,7 +543,7 @@ class TypeReconstructionModel(pl.LightningModule):
                     preds[struc_mask],
                     targets[struc_mask],
                     num_classes=len(self.vocab.types),
-                    class_reduction="macro",
+                    average="macro",
                 )
                 * len(self.vocab.types)
                 / len(self.vocab.types.struct_set),
