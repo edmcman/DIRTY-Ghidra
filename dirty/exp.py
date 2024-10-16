@@ -107,7 +107,7 @@ def train(args):
         ret = trainer.test(model, test_dataloaders=test_loader, ckpt_path=args["--eval-ckpt"])
         json.dump(ret[0], open("test_result.json", "w"))
     else:
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=resume_from_checkpoint)
 
 
 if __name__ == "__main__":
