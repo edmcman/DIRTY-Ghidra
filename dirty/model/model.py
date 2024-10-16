@@ -469,6 +469,7 @@ class TypeReconstructionModel(pl.LightningModule):
                     multiclass_accuracy(
                         rename_preds[retype_preds == retype_targets],
                         rename_targets[retype_preds == retype_targets],
+                        len(self.vocab.names)
                     ),
                 )
 
@@ -481,7 +482,7 @@ class TypeReconstructionModel(pl.LightningModule):
         targets = torch.cat([x[f"{task}_targets"] for x in outputs])
         loss = torch.cat([x[f"{task}_loss"] for x in outputs]).mean()
         self.log(f"{prefix}_{task}_loss", loss)
-        self.log(f"{prefix}_{task}_acc", multiclass_accuracy(preds, targets))
+        self.log(f"{prefix}_{task}_acc", multiclass_accuracy(preds, targets, num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)))
         self.log(
             f"{prefix}_{task}_acc_macro",
             multiclass_accuracy(
@@ -512,12 +513,12 @@ class TypeReconstructionModel(pl.LightningModule):
             name_in_train_mask = name_in_train_mask[:, 0]
         self.log(
             f"{prefix}_{task}_body_in_train_acc",
-            multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask]),
+            multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
         )
         if (~body_in_train_mask).sum() > 0:
             self.log(
                 f"{prefix}_{task}_body_not_in_train_acc",
-                multiclass_accuracy(preds[~body_in_train_mask], targets[~body_in_train_mask]),
+                multiclass_accuracy(preds[~body_in_train_mask], targets[~body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
             )
         assert pos == sum(x["targets_nums"].sum() for x in outputs), (
             pos,
@@ -533,7 +534,7 @@ class TypeReconstructionModel(pl.LightningModule):
         if struc_mask.sum() > 0:
             self.log(
                 f"{prefix}{task_str}_struc_acc",
-                multiclass_accuracy(preds[struc_mask], targets[struc_mask]),
+                multiclass_accuracy(preds[struc_mask], targets[struc_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
             )
             # adjust for the number of classes
             self.log(
@@ -553,6 +554,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 multiclass_accuracy(
                     preds[struc_mask & body_in_train_mask],
                     targets[struc_mask & body_in_train_mask],
+                    num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)
                 ),
             )
         if (~body_in_train_mask & struc_mask).sum() > 0:
@@ -561,6 +563,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 multiclass_accuracy(
                     preds[~body_in_train_mask & struc_mask],
                     targets[~body_in_train_mask & struc_mask],
+                    num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)
                 ),
             )
         return {
