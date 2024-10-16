@@ -39,8 +39,7 @@ jobs:
           set -ex
           cd $GITHUB_WORKSPACE/dirty
           python -m utils.preprocess $DATA_DIR/unprocessed $DATA_DIR/unprocessed/files.txt $DATA_DIR/processed
-          mv data1 data1.old 2>/dev/null || true
-          mkdir data1
+          ln -s $DATA_DIR/processed $(pwd)/data1
           python -m utils.vocab --size=164 --use-bpe "$DATA_DIR/processed/"'train-*.tar' "$DATA_DIR/processed/typelib.json" data1/vocab.bpe10000
         env:
           DATA_DIR: ${{ runner.temp }}/data
@@ -48,6 +47,7 @@ jobs:
         run: |
           set -ex
           cd $GITHUB_WORKSPACE/dirty
+          find data1
           python exp.py train multitask_test_ci.xfmr.jsonnet
           find . -name '*.ckpt'
   test-inference:
