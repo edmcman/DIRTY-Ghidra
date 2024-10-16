@@ -57,6 +57,5 @@
     "pred_file": "pred_mt_ci.json",
     "batch_size": 16,
     "beam_size": 0,
-    "limit": 2,
   }
 }
