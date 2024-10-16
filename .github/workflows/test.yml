@@ -47,7 +47,8 @@ jobs:
         run: |
           set -ex
           cd $GITHUB_WORKSPACE/dirty
-          find data1
+          find data1/
+          wandb offline
           python exp.py train multitask_test_ci.xfmr.jsonnet
           find . -name '*.ckpt'
   test-inference:
