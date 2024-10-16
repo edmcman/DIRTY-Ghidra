@@ -90,7 +90,6 @@ def train(args):
         ],
         check_val_every_n_epoch=config["train"]["check_val_every_n_epoch"],
         accumulate_grad_batches=config["train"]["grad_accum_step"],
-        resume_from_checkpoint=resume_from_checkpoint,
         limit_test_batches=config["test"]["limit"] if "limit" in config["test"] else 1.0
     )
     if args["--eval-ckpt"]:
