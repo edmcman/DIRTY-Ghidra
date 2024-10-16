@@ -44,6 +44,12 @@ jobs:
           python -m utils.vocab --size=164 --use-bpe "$DATA_DIR/processed/"'train-*.tar' "$DATA_DIR/processed/typelib.json" data1/vocab.bpe10000
         env:
           DATA_DIR: ${{ runner.temp }}/data
+      - name: Train on dataset
+        run: |
+          set -ex
+          cd $GITHUB_WORKSPACE/dirty
+          python exp.py train multitask_test_ci.xfmr.jsonnet
+          find . -name '*.ckpt'
   test-inference:
     runs-on: ${{ matrix.os }}
     strategy:
