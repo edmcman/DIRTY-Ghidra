@@ -26,7 +26,7 @@ jobs:
           mkdir -p $DATASET_DIR
           cd $DATASET_DIR
           # Create some dummy programs
-          for n in $(seq 10); do echo -e "#include <stdio.h>\nint main(int argc, const char** argv) { printf(\"%d %d\\\\n\", $n, argc); }" > s$n.c; gcc -g s$n.c -o s$n; rm s$n.c; done
+          for n in $(seq 20); do echo -e "#include <stdio.h>\nint main(int argc, const char** argv) { printf(\"%d %d\\\\n\", $n, argc); }" > s$n.c; gcc -g s$n.c -o s$n; rm s$n.c; done
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --verbose --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
           cd $DATA_DIR/unprocessed && python $GITHUB_WORKSPACE/dataset-gen-ghidra/gen_names.py $DATA_DIR/unprocessed
@@ -47,7 +47,7 @@ jobs:
         run: |
           set -ex
           cd $GITHUB_WORKSPACE/dirty
-          find data1/
+          find data1/ # DEBUG
           wandb offline
           python exp.py train multitask_test_ci.xfmr.jsonnet
           find . -name '*.ckpt'
