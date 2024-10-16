@@ -7,7 +7,6 @@ Usage:
 
 Options:
     -h --help                                   Show this screen
-    --cuda                                      Use GPU
     --debug                                     Debug mode
     --seed=<int>                                Seed [default: 0]
     --expname=<str>                             work dir [default: type]
@@ -79,8 +78,6 @@ def train(args):
     trainer = pl.Trainer(
         max_epochs=config["train"]["max_epoch"],
         logger=wandb_logger,
-        gpus=1 if args["--cuda"] else None,
-        auto_select_gpus=True,
         gradient_clip_val=1,
         callbacks=[
             EarlyStopping(
@@ -123,9 +120,7 @@ if __name__ == "__main__":
     print(f"use random seed {seed}", file=sys.stderr)
     torch.manual_seed(seed)
 
-    use_cuda = cmd_args["--cuda"]
-    if use_cuda:
-        torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
     np.random.seed(seed * 13 // 7)
     random.seed(seed * 17 // 7)
 
