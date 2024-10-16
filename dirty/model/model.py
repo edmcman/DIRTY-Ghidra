@@ -260,6 +260,9 @@ class TypeReconstructionModel(pl.LightningModule):
         super().__init__()
         if config_load is not None:
             config = config_load
+        # Lame, we need to save our outputs now!
+        # https://github.com/Lightning-AI/pytorch-lightning/pull/16520
+        self.eval_outputs = []
         self.encoder = Encoder.build(config["encoder"])
         self.retype = config["data"].get("retype", False)
         self.rename = config["data"].get("rename", False)
@@ -356,7 +359,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 )
                 ret_dict = {**ret, **ret_dict}
 
-        return dict(
+        d = dict(
             **ret_dict,
             # this is the number of variables per example, which is same in src
             # and tgt.
@@ -365,6 +368,10 @@ class TypeReconstructionModel(pl.LightningModule):
             index=input_dict["index"],
             tgt_var_names=target_dict["tgt_var_names"],
         )
+
+        self.eval_outputs.append(d)
+
+        return d
     
     def forward(self, batch, return_non_best=False):
         input_dict = batch
@@ -412,10 +419,13 @@ class TypeReconstructionModel(pl.LightningModule):
 
         return ret
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self):
+        outputs = self.eval_outputs
         self._shared_epoch_end(outputs, "val")
+        self.eval_outputs.clear()
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self):
+        outputs = self.eval_outputs
         final_ret = self._shared_epoch_end(outputs, "test")
         if "pred_file" in self.config["test"]:
             results = {}
@@ -437,6 +447,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 )
             pred_file = self.config["test"]["pred_file"]
             json.dump(results, open(pred_file, "w"))
+        self.eval_outputs.clear()
 
     def _shared_epoch_end(self, outputs, prefix):
         final_ret = {}
