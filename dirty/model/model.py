@@ -511,10 +511,11 @@ class TypeReconstructionModel(pl.LightningModule):
             # HACK for data parallel
             body_in_train_mask = body_in_train_mask[:, 0]
             name_in_train_mask = name_in_train_mask[:, 0]
-        self.log(
-            f"{prefix}_{task}_body_in_train_acc",
-            multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
-        )
+        if body_in_train_mask.sum() > 0:
+            self.log(
+                f"{prefix}_{task}_body_in_train_acc",
+                multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
+            )
         if (~body_in_train_mask).sum() > 0:
             self.log(
                 f"{prefix}_{task}_body_not_in_train_acc",
