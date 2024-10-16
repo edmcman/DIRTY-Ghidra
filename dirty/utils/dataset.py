@@ -209,7 +209,6 @@ class Dataset(wds.Dataset):
         # support wildcards
         urls = sorted(glob.glob(url))
         urls = urls[: int(percent * len(urls))]
-        print(f"TMPDEBUG URL: {url} URLs: {urls}")
         super().__init__(urls)
         if config:
             # annotate example for training
