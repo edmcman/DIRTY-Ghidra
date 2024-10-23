@@ -297,7 +297,9 @@ class Dataset(wds.Dataset):
         tgt_names = []
 
 
-        locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
+        # Experiment: Is it better if we randomize this order?
+        locs = random.sample(example.source.keys(), k=len(example.source.keys()))
+        #locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
 
         stack_pos = [x.offset for x in example.source.keys() if isinstance(x, Stack)]
         stack_start_pos = max(stack_pos) if stack_pos else None
