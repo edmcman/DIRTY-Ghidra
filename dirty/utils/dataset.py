@@ -265,6 +265,7 @@ class Dataset(wds.Dataset):
                 json_line["binary"] = jsonl["__key__"][: jsonl["__key__"].index("_")]
                 yield json_line
 
+    # Preprocessing for training
     def _annotate(self, example: Example):
         src_bpe_model = self.vocab.source_tokens.subtoken_model
         snippet = example.code_tokens
