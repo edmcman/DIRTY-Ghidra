@@ -1,6 +1,7 @@
 import glob
 import json
 from typing import Dict, List, Mapping, Optional, Set, Tuple, Union
+import random
 from collections import defaultdict
 
 import _jsonnet
