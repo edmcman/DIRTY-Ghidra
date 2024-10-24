@@ -125,8 +125,7 @@ def train(args):
     else:
         tuner = Tuner(trainer)
         tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
-        print(datamodule.batch_size)
-        print(model.batch_size)
+        print(f"Largest batch size: {datamodule.batch_size}")
         # XXX replace train_loader
         trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader(), ckpt_path=resume_from_checkpoint)
 
