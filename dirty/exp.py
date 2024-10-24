@@ -66,6 +66,21 @@ def train(args):
         pin_memory=True,
     )
 
+    # Define DataModule for batch finding.
+    class LitDataModule(LightningDataModule):
+        def __init__(self, batch_size = batch_size):
+            super().__init__()
+            self.batch_size = batch_size
+
+        def train_dataloader(self):
+            return DataLoader(
+                train_set,
+                batch_size=self.batch_size,
+                collate_fn=Dataset.collate_fn,
+                num_workers=16,
+                pin_memory=True,
+            )
+
     # model
     model = TypeReconstructionModel(config)
 
@@ -108,8 +123,11 @@ def train(args):
         json.dump(ret[0], open("test_result.json", "w"))
     else:
         tuner = Tuner(trainer)
-        tuner.scale_batch_size(model, train_loader)
-        print(train_loader.batch_size)
+        train_data_module = LitDataModule(batch_size=batch_size)
+        tuner.scale_batch_size(model, datamodule=train_data_module)
+        print(train_data_module.batch_size)
+        print(model.batch_size)
+        # XXX replace train_loader
         trainer.fit(model, train_loader, val_loader, ckpt_path=resume_from_checkpoint)
 
 
