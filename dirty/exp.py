@@ -29,6 +29,7 @@ import wandb
 from docopt import docopt
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.pytorch.tuner import Tuner
 from torch.utils.data import DataLoader
 
 from model.model import TypeReconstructionModel
@@ -106,6 +107,9 @@ def train(args):
         ret = trainer.test(model, test_dataloaders=test_loader, ckpt_path=args["--eval-ckpt"])
         json.dump(ret[0], open("test_result.json", "w"))
     else:
+        tuner = Tuner(trainer)
+        tuner.scale_batch_size(model, train_loader)
+        print(train_loader.batch_size)
         trainer.fit(model, train_loader, val_loader, ckpt_path=resume_from_checkpoint)
 
 
