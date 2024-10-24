@@ -124,7 +124,7 @@ def train(args):
         json.dump(ret[0], open("test_result.json", "w"))
     else:
         tuner = Tuner(trainer)
-        tuner.scale_batch_size(model, datamodule=datamodule)
+        tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
         print(datamodule.batch_size)
         print(model.batch_size)
         # XXX replace train_loader
