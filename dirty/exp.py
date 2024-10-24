@@ -29,7 +29,7 @@ import wandb
 from docopt import docopt
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.pytorch.tuner import Tuner
+from pytorch_lightning.tuner import Tuner
 from torch.utils.data import DataLoader
 
 from model.model import TypeReconstructionModel
