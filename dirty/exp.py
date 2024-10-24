@@ -82,6 +82,15 @@ def train(args):
                 pin_memory=True,
             )
 
+        def val_dataloader(self):
+            return DataLoader(
+                dev_set,
+                batch_size=self.batch_size,
+                collate_fn=Dataset.collate_fn,
+                num_workers=8,
+                pin_memory=True,
+            )
+
     # model
     model = TypeReconstructionModel(config)
 
