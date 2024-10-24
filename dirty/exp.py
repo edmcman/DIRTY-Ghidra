@@ -27,8 +27,10 @@ import pytorch_lightning as pl
 import torch
 import wandb
 from docopt import docopt
+from pytorch_lightning import LightningDataModule
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.tuner import Tuner
 from torch.utils.data import DataLoader
 
 from model.model import TypeReconstructionModel
@@ -49,21 +51,41 @@ def train(args):
     train_set = Dataset(
         config["data"]["train_file"], config["data"], percent=float(args["--percent"])
     )
+    test_set = Dataset(config["data"]["test_file"], config["data"])
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
-    train_loader = DataLoader(
-        train_set,
-        batch_size=batch_size,
-        collate_fn=Dataset.collate_fn,
-        num_workers=16,
-        pin_memory=True,
-    )
-    val_loader = DataLoader(
-        dev_set,
-        batch_size=batch_size,
-        collate_fn=Dataset.collate_fn,
-        num_workers=8,
-        pin_memory=True,
-    )
+
+    # Define DataModule for batch finding.
+    class LitDataModule(LightningDataModule):
+        def __init__(self, batch_size = batch_size):
+            super().__init__()
+            self.batch_size = batch_size
+
+        def test_dataloader(self):
+            return DataLoader(
+                test_set,
+                batch_size=config["test"]["batch_size"],
+                collate_fn=Dataset.collate_fn,
+                num_workers=8,
+                pin_memory=True,
+            )
+
+        def train_dataloader(self):
+            return DataLoader(
+                train_set,
+                batch_size=self.batch_size,
+                collate_fn=Dataset.collate_fn,
+                num_workers=16,
+                pin_memory=True,
+            )
+
+        def val_dataloader(self):
+            return DataLoader(
+                dev_set,
+                batch_size=self.batch_size,
+                collate_fn=Dataset.collate_fn,
+                num_workers=8,
+                pin_memory=True,
+            )
 
     # model
     model = TypeReconstructionModel(config)
@@ -92,21 +114,19 @@ def train(args):
         accumulate_grad_batches=config["train"]["grad_accum_step"],
         limit_test_batches=config["test"]["limit"] if "limit" in config["test"] else 1.0
     )
+
+    datamodule = LitDataModule(batch_size=batch_size)
+
     if args["--eval-ckpt"]:
         # HACK: necessary to make pl test work for IterableDataset
         Dataset.__len__ = lambda self: 1000000
-        test_set = Dataset(config["data"]["test_file"], config["data"])
-        test_loader = DataLoader(
-            test_set,
-            batch_size=config["test"]["batch_size"],
-            collate_fn=Dataset.collate_fn,
-            num_workers=8,
-            pin_memory=True,
-        )
-        ret = trainer.test(model, test_dataloaders=test_loader, ckpt_path=args["--eval-ckpt"])
+        ret = trainer.test(model, test_dataloaders=datamodule.test_dataloader(), ckpt_path=args["--eval-ckpt"])
         json.dump(ret[0], open("test_result.json", "w"))
     else:
-        trainer.fit(model, train_loader, val_loader, ckpt_path=resume_from_checkpoint)
+        tuner = Tuner(trainer)
+        tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
+        print(f"Largest batch size: {datamodule.batch_size}")
+        trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader(), ckpt_path=resume_from_checkpoint)
 
 
 if __name__ == "__main__":
