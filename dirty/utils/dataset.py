@@ -205,6 +205,9 @@ class WrappedLenDataset(IterableDataset):
         self.len = sum(1 for b in ds)
         self.ds = ds
 
+    def __iter__(self):
+        return iter(self.ds)
+
     def __len__(self):
         return self.len
 
