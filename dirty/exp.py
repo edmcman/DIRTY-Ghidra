@@ -56,6 +56,8 @@ def train(args):
     test_set.__len__ = lambda self: sum(1 for _ in test_set)
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
+    print(f"len is {len(train_set)}")
+
     # Define DataModule for batch finding.
     class LitDataModule(LightningDataModule):
         def __init__(self, batch_size = batch_size):
