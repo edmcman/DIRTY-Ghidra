@@ -35,7 +35,7 @@ from torch.utils.data import DataLoader
 
 from model.model import TypeReconstructionModel
 from utils import util
-from utils.dataset import Dataset
+from utils.dataset import Dataset, WrappedLenDataset
 
 
 def train(args):
@@ -51,9 +51,9 @@ def train(args):
     train_set = Dataset(
         config["data"]["train_file"], config["data"], percent=float(args["--percent"])
     )
-    train_set.__len__ = lambda self: 42 #sum(1 for _ in train_set)
+    train_set = WrappedLenDataset(train_set)
     test_set = Dataset(config["data"]["test_file"], config["data"])
-    test_set.__len__ = lambda self: sum(1 for _ in test_set)
+    test_set = WrappedLenDataset(test_set)
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
     print(f"len is {len(train_set)}")

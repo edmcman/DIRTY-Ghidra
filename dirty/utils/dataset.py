@@ -199,6 +199,16 @@ def identity(x):
 def get_src_len(e):
     return e.source_seq_length
 
+class WrappedLenDataset:
+    def __init__(self, ds):
+        self.len = sum(len(b) for b in ds)
+        self.ds = ds
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getattr__(self, attr):
+        return getattr(self._wrapped, attr)
 
 class Dataset(wds.Dataset):
 
