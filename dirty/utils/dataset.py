@@ -227,7 +227,6 @@ class Dataset(wds.Dataset):
         if config:
             # annotate example for training
             from utils.vocab import Vocab
-            print(config["vocab_file"])
             self.vocab = Vocab.load(config["vocab_file"])
             with open(config["typelib_file"]) as type_f:
                 self.typelib = TypeLibCodec.decode(type_f.read())
