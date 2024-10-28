@@ -1,5 +1,5 @@
 """
-Variable renaming
+Experiment strip
 
 Usage:
     exp.py train [options] CONFIG_FILE
@@ -51,7 +51,9 @@ def train(args):
     train_set = Dataset(
         config["data"]["train_file"], config["data"], percent=float(args["--percent"])
     )
+    train_set.__len__ = lambda self: sum(1 for _ in train_set)
     test_set = Dataset(config["data"]["test_file"], config["data"])
+    test_set.__len__ = lambda self: sum(1 for _ in test_set)
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
     # Define DataModule for batch finding.
