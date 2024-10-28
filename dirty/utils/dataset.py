@@ -205,7 +205,7 @@ class WrappedLenDataset:
         self.ds = ds
 
     def __len__(self):
-        return len(self.dataset)
+        return self.len
 
     def __getattr__(self, attr):
         return getattr(self.ds, attr)
