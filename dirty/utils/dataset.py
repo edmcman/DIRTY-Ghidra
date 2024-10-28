@@ -208,7 +208,7 @@ class WrappedLenDataset:
         return len(self.dataset)
 
     def __getattr__(self, attr):
-        return getattr(self._wrapped, attr)
+        return getattr(self.ds, attr)
 
 class Dataset(wds.Dataset):
 
