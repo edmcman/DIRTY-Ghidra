@@ -201,7 +201,7 @@ def get_src_len(e):
 
 class WrappedLenDataset:
     def __init__(self, ds):
-        self.len = sum(len(b) for b in ds)
+        self.len = sum(1 for b in ds)
         self.ds = ds
 
     def __len__(self):
