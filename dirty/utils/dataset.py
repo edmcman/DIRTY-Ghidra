@@ -6,6 +6,7 @@ from collections import defaultdict
 import _jsonnet
 import torch
 import webdataset as wds
+from torch.utils.data import IterableDataset
 from torch.nn.utils.rnn import pad_sequence
 
 from utils.code_processing import tokenize_raw_code
@@ -199,7 +200,7 @@ def identity(x):
 def get_src_len(e):
     return e.source_seq_length
 
-class WrappedLenDataset:
+class WrappedLenDataset(IterableDataset):
     def __init__(self, ds):
         self.len = sum(1 for b in ds)
         self.ds = ds
