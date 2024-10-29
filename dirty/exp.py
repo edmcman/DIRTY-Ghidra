@@ -127,9 +127,13 @@ def train(args):
         ret = trainer.test(model, test_dataloaders=datamodule.test_dataloader(), ckpt_path=args["--eval-ckpt"])
         json.dump(ret[0], open("test_result.json", "w"))
     else:
+        if trainer._accelerator_connector.is_distributed
         tuner = Tuner(trainer)
-        tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
-        print(f"Largest batch size: {datamodule.batch_size}")
+        try:
+            tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
+            print(f"Largest batch size: {datamodule.batch_size}")
+        except pl.utilities.exceptions.MisconfigurationException:
+            print("Couldn't find largest batch size")
         trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader(), ckpt_path=resume_from_checkpoint)
 
 
