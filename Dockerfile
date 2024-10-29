@@ -1,3 +1,6 @@
+# docker build -t dirty-ghidra .
+# docker run -d --name dirty-ghidra --gpus '"device=3,4"' -it -v /path/to/data:/data dirty-ghidra
+
 FROM blacktop/ghidra:latest
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \

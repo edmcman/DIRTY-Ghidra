@@ -173,7 +173,8 @@ class TypeLib:
             # Rather than actually encoding function definitions, we'll just
             # typedef them to void, so function pointers will be of type void*.
             return TypeDef(name=typ.getName(), size=typ.getLength(), other_type_name="void")
-        elif isinstance(typ, (PointerDataType.__pytype__, PointerDB.__pytype__)):
+        # TIL that PointerDataType do not have to have a subtype
+        elif isinstance(typ, (PointerDataType.__pytype__, PointerDB.__pytype__)) and typ.getDataType() is not None:
             return Pointer(typ.getDataType().getName())
         elif isinstance(typ, (ArrayDataType.__pytype__, ArrayDB.__pytype__)):
             # To get array type info, first create an

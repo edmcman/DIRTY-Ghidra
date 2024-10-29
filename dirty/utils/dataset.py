@@ -202,6 +202,7 @@ def get_src_len(e):
 
 class WrappedLenDataset(IterableDataset):
     def __init__(self, ds):
+        print("Computing length of dataset... this could take a while")
         self.len = sum(1 for b in ds)
         self.ds = ds
 
