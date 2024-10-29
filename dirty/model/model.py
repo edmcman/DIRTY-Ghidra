@@ -483,7 +483,7 @@ class TypeReconstructionModel(pl.LightningModule):
         targets = torch.cat([x[f"{task}_targets"] for x in outputs])
         loss = torch.cat([x[f"{task}_loss"] for x in outputs]).mean()
         self.log(f"{prefix}_{task}_loss", loss, sync_dist=True)
-        self.log(f"{prefix}_{task}_acc", multiclass_accuracy(preds, targets, num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)), sync_dist=True)
+        self.log(f"{prefix}_{task}_acc", multiclass_accuracy(preds, targets, num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)).to(self.device), sync_dist=True)
         self.log(
             f"{prefix}_{task}_acc_macro",
             multiclass_accuracy(
@@ -491,7 +491,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 targets,
                 num_classes=len(self.vocab.types if task == "retype" else self.vocab.names),
                 average="macro",
-            ),
+            ).to(self.device),
             sync_dist=True
         )
         # func acc
@@ -516,13 +516,13 @@ class TypeReconstructionModel(pl.LightningModule):
         if body_in_train_mask.sum() > 0:
             self.log(
                 f"{prefix}_{task}_body_in_train_acc",
-                multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
+                multiclass_accuracy(preds[body_in_train_mask], targets[body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)).to(self.device),
                 sync_dist=True
             )
         if (~body_in_train_mask).sum() > 0:
             self.log(
                 f"{prefix}_{task}_body_not_in_train_acc",
-                multiclass_accuracy(preds[~body_in_train_mask], targets[~body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
+                multiclass_accuracy(preds[~body_in_train_mask], targets[~body_in_train_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)).to(self.device),
                 sync_dist=True
             )
         assert pos == sum(x["targets_nums"].sum() for x in outputs), (
@@ -539,7 +539,7 @@ class TypeReconstructionModel(pl.LightningModule):
         if struc_mask.sum() > 0:
             self.log(
                 f"{prefix}{task_str}_struc_acc",
-                multiclass_accuracy(preds[struc_mask], targets[struc_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)),
+                multiclass_accuracy(preds[struc_mask], targets[struc_mask], num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)).to(self.device),
                 sync_dist=True
             )
             # adjust for the number of classes
@@ -550,7 +550,7 @@ class TypeReconstructionModel(pl.LightningModule):
                     targets[struc_mask],
                     num_classes=len(self.vocab.types),
                     average="macro",
-                )
+                ).to(self.device)
                 * len(self.vocab.types)
                 / len(self.vocab.types.struct_set),
                 sync_dist=True
@@ -562,7 +562,7 @@ class TypeReconstructionModel(pl.LightningModule):
                     preds[struc_mask & body_in_train_mask],
                     targets[struc_mask & body_in_train_mask],
                     num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)
-                ),
+                ).to(self.device),
                 sync_dist=True
             )
         if (~body_in_train_mask & struc_mask).sum() > 0:
@@ -572,7 +572,7 @@ class TypeReconstructionModel(pl.LightningModule):
                     preds[~body_in_train_mask & struc_mask],
                     targets[~body_in_train_mask & struc_mask],
                     num_classes=len(self.vocab.types if task == "retype" else self.vocab.names)
-                ),
+                ).to(self.device),
                 sync_dist=True
             )
         return {
