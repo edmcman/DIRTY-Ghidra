@@ -131,7 +131,7 @@ def train(args):
             tuner = Tuner(trainer)
             tuner.scale_batch_size(model, init_val=batch_size, datamodule=datamodule, max_trials=10)
             print(f"Largest batch size: {datamodule.batch_size}")
-        except pl.utilities.exceptions.MisconfigurationException:
+        except ValueError:
             print("Couldn't find largest batch size")
         trainer.fit(model, datamodule.train_dataloader(), datamodule.val_dataloader(), ckpt_path=resume_from_checkpoint)
 
