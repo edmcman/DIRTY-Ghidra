@@ -235,7 +235,7 @@ class Dataset(wds.Dataset):
             what.pipe(Dataset._file_iter_to_line_iter)
         )
         print(basic_dataset)
-        mylen = len(basic_dataset)
+        mylen = sum(1 for _ in basic_dataset)
         print(f"Length of dataset is {mylen}")
 
         self = (
