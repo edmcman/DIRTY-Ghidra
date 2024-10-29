@@ -277,6 +277,7 @@ class Dataset(wds.Dataset):
                 json_line["binary"] = jsonl["__key__"][: jsonl["__key__"].index("_")]
                 yield json_line
 
+    # This is for preprocessing
     def _annotate(self, example: Example):
         src_bpe_model = self.vocab.source_tokens.subtoken_model
         snippet = example.code_tokens
@@ -309,8 +310,19 @@ class Dataset(wds.Dataset):
         src_var_locs_encoded = []
         tgt_names = []
 
+        # Sort locations by order in which the first variable in that location
+        # is referenced
+        def order_by_loc(loc):
+            source_vars = example.source[loc]
+            # The old ordering code would use self.max_src_tokens_len if the
+            # variable was never referenced.  Instead of doing that, we'll use
+            # repr(loc) to make it deterministic.  Fortunately, numbered strings
+            # are < characters, so we'll just cast the result of index to a
+            # string.
+            first_appearance = min(str(sub_tokens.index(f"@@{var.name}@@")) if "@@{var.name}@@" in sub_tokens else repr(loc) for var in source_vars for var in source_vars)
+            return first_appearance
 
-        locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
+        locs = sorted(example.source.keys(), key=order_by_loc)
 
         stack_pos = [x.offset for x in example.source.keys() if isinstance(x, Stack)]
         stack_start_pos = max(stack_pos) if stack_pos else None
