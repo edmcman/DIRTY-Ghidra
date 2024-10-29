@@ -229,7 +229,7 @@ class Dataset(wds.Dataset):
 
         # Estimate size of dataset
         basic_dataset = (
-            self.pipe(Dataset._file_iter_to_line_iter)
+            wds.Dataset.pipe(Dataset._file_iter_to_line_iter)
         )
         mylen = len(basic_dataset)
         print(f"Length of dataset is {mylen}")
