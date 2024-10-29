@@ -35,7 +35,7 @@ from torch.utils.data import DataLoader
 
 from model.model import TypeReconstructionModel
 from utils import util
-from utils.dataset import Dataset, WrappedLenDataset
+from utils.dataset import Dataset
 
 
 def train(args):

@@ -230,13 +230,11 @@ class Dataset(wds.Dataset):
         # Estimate size of dataset
         # XXX: Limit number of files we read?
         what = wds.Dataset(urls)
-        print(what)
         basic_dataset = (
             what.pipe(Dataset._file_iter_to_line_iter)
         )
-        print(basic_dataset)
         mylen = sum(1 for _ in basic_dataset)
-        print(f"Length of dataset is {mylen}")
+        #print(f"Length of dataset is {mylen}")
 
         self = (
             self.pipe(Dataset._file_iter_to_line_iter)
