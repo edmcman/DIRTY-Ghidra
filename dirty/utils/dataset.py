@@ -200,21 +200,6 @@ def identity(x):
 def get_src_len(e):
     return e.source_seq_length
 
-class WrappedLenDataset(IterableDataset):
-    def __init__(self, ds):
-        print("Computing length of dataset... this could take a while")
-        self.len = sum(1 for b in ds)
-        self.ds = ds
-
-    def __iter__(self):
-        return iter(self.ds)
-
-    def __len__(self):
-        return self.len
-
-    def __getattr__(self, attr):
-        return getattr(self.ds, attr)
-
 class Dataset(wds.Dataset):
 
     SHUFFLE_BUFFER = 5000
@@ -241,6 +226,14 @@ class Dataset(wds.Dataset):
             # for creating the vocab
             annotate = identity
             sort = identity
+
+        # Estimate size of dataset
+        basic_dataset = (
+            self.pipe(Dataset._file_iter_to_line_iter)
+        )
+        mylen = len(basic_dataset)
+        print(f"Length of dataset is {mylen}")
+
         self = (
             self.pipe(Dataset._file_iter_to_line_iter)
             .map(Example.from_json)
@@ -248,6 +241,10 @@ class Dataset(wds.Dataset):
             .shuffle(Dataset.SHUFFLE_BUFFER)
             .pipe(sort)
         )
+        self.len = mylen
+
+    def __len__(self):
+        return self.len
 
     @staticmethod
     def _sort(example_iter):

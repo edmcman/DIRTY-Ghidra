@@ -51,9 +51,7 @@ def train(args):
     train_set = Dataset(
         config["data"]["train_file"], config["data"], percent=float(args["--percent"])
     )
-    train_set = WrappedLenDataset(train_set)
     test_set = Dataset(config["data"]["test_file"], config["data"])
-    test_set = WrappedLenDataset(test_set)
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
     print(f"len is {len(train_set)}")
