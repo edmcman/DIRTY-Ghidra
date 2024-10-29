@@ -227,15 +227,6 @@ class Dataset(wds.Dataset):
             annotate = identity
             sort = identity
 
-        # Estimate size of dataset
-        # XXX: Limit number of files we read?
-        what = wds.Dataset(urls)
-        basic_dataset = (
-            what.pipe(Dataset._file_iter_to_line_iter)
-        )
-        mylen = sum(1 for _ in basic_dataset)
-        #print(f"Length of dataset is {mylen}")
-
         self = (
             self.pipe(Dataset._file_iter_to_line_iter)
             .map(Example.from_json)
@@ -243,7 +234,12 @@ class Dataset(wds.Dataset):
             .shuffle(Dataset.SHUFFLE_BUFFER)
             .pipe(sort)
         )
-        self.len = mylen
+
+        # Estimate size of dataset
+        # XXX: Limit number of files we read?  Right
+        # now we use all of them.
+        line_dataset = wds.Dataset(urls).pipe(Dataset._file_iter_to_line_iter)
+        self.len = sum(1 for _ in line_dataset)
 
     def __len__(self):
         return self.len
@@ -308,7 +304,6 @@ class Dataset(wds.Dataset):
         tgt_var_type_objs = []
         src_var_locs_encoded = []
         tgt_names = []
-
 
         locs = sorted(example.source.keys(), key=lambda loc: repr(loc))
 
@@ -436,10 +431,8 @@ class Dataset(wds.Dataset):
         ]
         target_type_sizes = pad_sequence(type_sizes, batch_first=True)
 
-
         src_type_mask = src_type_id > 0
         tgt_type_mask = target_type_id > 0
-
 
         src_var_locs = [
             torch.tensor(mems, dtype=torch.long)
