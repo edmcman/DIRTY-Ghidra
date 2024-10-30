@@ -320,7 +320,7 @@ class TypeReconstructionModel(pl.LightningModule):
                 )
                 self.log("train_rename_loss", loss)
                 total_loss += loss
-        self.log("train_loss", total_loss)
+        self.log("train_loss", total_loss, prog_bar=True)
         return total_loss
 
     def validation_step(self, batch, batch_idx):
