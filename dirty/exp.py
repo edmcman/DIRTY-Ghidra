@@ -112,7 +112,10 @@ def train(args):
                 patience=config["train"]["patience"],
             ),
             # Save all checkpoints that improve accuracy
-            ModelCheckpoint(monitor=monitor_var, mode="max")
+            ModelCheckpoint(
+                monitor=monitor_var,
+                save_top_k=2,
+                mode="max")
         ],
         check_val_every_n_epoch=config["train"]["check_val_every_n_epoch"],
         accumulate_grad_batches=config["train"]["grad_accum_step"],
