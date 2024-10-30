@@ -232,7 +232,7 @@ class Dataset(wds.WebDataset):
             .map(Example.from_json)
             .map(annotate)
             .shuffle(Dataset.SHUFFLE_BUFFER)
-            .pipe(sort)
+            .compose(sort)
         )
 
         # Estimate size of dataset
