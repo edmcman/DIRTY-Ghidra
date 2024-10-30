@@ -54,7 +54,7 @@ def train(args):
     test_set = Dataset(config["data"]["test_file"], config["data"])
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
-    print(f"len is {len(train_set)}")
+    print(f"Length of training dataset is {len(train_set)} examples")
 
     # Define DataModule for batch finding.
     class LitDataModule(LightningDataModule):
