@@ -229,30 +229,39 @@ class Dataset(IterableDataset):
             annotate = identity
             sort = identity
 
-        self.wds = (
-            wds.WebDataset(urls, empty_check=False)
-            .compose(Dataset._file_iter_to_line_iter)
-            .map(Example.from_json)
-            .map(annotate)
-            .shuffle(Dataset.SHUFFLE_BUFFER)
-            .compose(sort)
-        )
+        if not urls:
 
-        # Estimate size of dataset
-        # XXX: Limit number of files we read or use a timer?  Right
-        # now we use all of them.
-        try:
-            line_dataset = (
-                wds.WebDataset(urls)
-                .compose(Dataset._file_iter_to_line_iter)
-            )
-            #print(f"URLs: {urls} dataset: {line_dataset}")
-            #print("Estimating size of dataset...")
-            self.len = sum(1 for _line in line_dataset)
-        except:
-            # This might fail if we create a dummy dataset, such as in
-            # utils.infer.
+            # Dummy dataset for utils.infer
+
             self.len = None
+            self.wds = None
+
+        else:
+
+            self.wds = (
+                wds.WebDataset(urls, empty_check=False)
+                .compose(Dataset._file_iter_to_line_iter)
+                .map(Example.from_json)
+                .map(annotate)
+                .shuffle(Dataset.SHUFFLE_BUFFER)
+                .compose(sort)
+            )
+
+            # Estimate size of dataset
+            # XXX: Limit number of files we read or use a timer?  Right
+            # now we use all of them.
+            try:
+                line_dataset = (
+                    wds.WebDataset(urls)
+                    .compose(Dataset._file_iter_to_line_iter)
+                )
+                #print(f"URLs: {urls} dataset: {line_dataset}")
+                #print("Estimating size of dataset...")
+                self.len = sum(1 for _line in line_dataset)
+            except:
+                # This might fail if we create a dummy dataset, such as in
+                # utils.infer.
+                self.len = None
 
     def __len__(self):
         return self.len
