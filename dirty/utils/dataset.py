@@ -210,6 +210,8 @@ class Dataset(IterableDataset):
         urls = sorted(glob.glob(url))
         urls = urls[: int(percent * len(urls))]
 
+        print(f"Debug: {url} {urls}")
+
         if config:
             # annotate example for training
             self.vocab = Vocab.load(config["vocab_file"])
