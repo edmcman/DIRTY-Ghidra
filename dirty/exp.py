@@ -114,6 +114,7 @@ def train(args):
             # Save all checkpoints that improve accuracy
             ModelCheckpoint(
                 monitor=monitor_var,
+                filename='{epoch}-{%s:.2f}' % monitor_var,
                 save_top_k=2,
                 mode="max")
         ],
