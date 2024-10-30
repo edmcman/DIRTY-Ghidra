@@ -29,7 +29,7 @@ import wandb
 from docopt import docopt
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.tuner import Tuner
 from torch.utils.data import DataLoader
 
@@ -54,7 +54,7 @@ def train(args):
     test_set = Dataset(config["data"]["test_file"], config["data"])
     dev_set = Dataset(config["data"]["dev_file"], config["data"])
 
-    print(f"len is {len(train_set)}")
+    print(f"Length of training dataset is {len(train_set)} examples")
 
     # Define DataModule for batch finding.
     class LitDataModule(LightningDataModule):
@@ -92,8 +92,10 @@ def train(args):
     # model
     model = TypeReconstructionModel(config)
 
-    wandb_logger = WandbLogger(name=args["--expname"], project="dire", log_model=True)
+    wandb_logger = WandbLogger(name=args["--expname"], project="dire", log_model="all")
     wandb_logger.log_hyperparams(config)
+    wandb_logger.watch(model, log="all")
+    monitor_var = "val_retype_acc" if config["data"]["retype"] else "val_rename_acc"
     resume_from_checkpoint = (
         args["--eval-ckpt"] if args["--eval-ckpt"] else args["--resume"]
     )
@@ -105,12 +107,16 @@ def train(args):
         gradient_clip_val=1,
         callbacks=[
             EarlyStopping(
-                monitor="val_retype_acc"
-                if config["data"]["retype"]
-                else "val_rename_acc",
+                monitor=monitor_var,
                 mode="max",
                 patience=config["train"]["patience"],
-            )
+            ),
+            # Save all checkpoints that improve accuracy
+            ModelCheckpoint(
+                monitor=monitor_var,
+                filename='{epoch}-{%s:.2f}' % monitor_var,
+                save_top_k=2,
+                mode="max")
         ],
         check_val_every_n_epoch=config["train"]["check_val_every_n_epoch"],
         accumulate_grad_batches=config["train"]["grad_accum_step"],
