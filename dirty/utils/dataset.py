@@ -200,21 +200,6 @@ def identity(x):
 def get_src_len(e):
     return e.source_seq_length
 
-class WrappedLenDataset(IterableDataset):
-    def __init__(self, ds):
-        print("Computing length of dataset... this could take a while")
-        self.len = sum(1 for b in ds)
-        self.ds = ds
-
-    def __iter__(self):
-        return iter(self.ds)
-
-    def __len__(self):
-        return self.len
-
-    def __getattr__(self, attr):
-        return getattr(self.ds, attr)
-
 class Dataset(wds.Dataset):
 
     SHUFFLE_BUFFER = 5000
@@ -241,6 +226,7 @@ class Dataset(wds.Dataset):
             # for creating the vocab
             annotate = identity
             sort = identity
+
         self = (
             self.pipe(Dataset._file_iter_to_line_iter)
             .map(Example.from_json)
@@ -248,6 +234,21 @@ class Dataset(wds.Dataset):
             .shuffle(Dataset.SHUFFLE_BUFFER)
             .pipe(sort)
         )
+
+        # Estimate size of dataset
+        # XXX: Limit number of files we read?  Right
+        # now we use all of them.
+        try:
+            line_dataset = wds.Dataset(urls).pipe(Dataset._file_iter_to_line_iter)
+            print(f"URLs: {urls} dataset: {line_dataset}")
+            self.len = sum(1 for _line in line_dataset)
+        except:
+            # This might fail if we create a dummy dataset, such as in
+            # utils.infer.
+            self.len = None
+
+    def __len__(self):
+        return self.len
 
     @staticmethod
     def _sort(example_iter):
@@ -449,10 +450,8 @@ class Dataset(wds.Dataset):
         ]
         target_type_sizes = pad_sequence(type_sizes, batch_first=True)
 
-
         src_type_mask = src_type_id > 0
         tgt_type_mask = target_type_id > 0
-
 
         src_var_locs = [
             torch.tensor(mems, dtype=torch.long)
