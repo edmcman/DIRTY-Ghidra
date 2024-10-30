@@ -92,6 +92,9 @@ def train(args):
     # model
     model = TypeReconstructionModel(config)
 
+    if "torch_float32_matmul" in config["train"]:
+        torch.set_float32_matmul_precision(config["train"]["torch_float32_matmul"])
+
     wandb_logger = WandbLogger(name=args["--expname"], project="dire", log_model="all")
     wandb_logger.log_hyperparams(config)
     wandb_logger.watch(model, log="all")
@@ -102,6 +105,7 @@ def train(args):
     if resume_from_checkpoint == "":
         resume_from_checkpoint = None
     trainer = pl.Trainer(
+        precision=config["train"].get("precision", 32),
         max_epochs=config["train"]["max_epoch"],
         logger=wandb_logger,
         gradient_clip_val=1,

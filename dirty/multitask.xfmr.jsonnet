@@ -46,6 +46,8 @@
     "hidden_size": $['mem_encoder'].hidden_size,
   },
   "train": {
+    "torch_float32_matmul": "medium", # high, highest
+    "precision": "16-mixed", # bit
     "batch_size": 16,
     "grad_accum_step": 4,
     "max_epoch": 25,
