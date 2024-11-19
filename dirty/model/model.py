@@ -459,18 +459,10 @@ class TypeReconstructionModel(pl.LightningModule):
         if self.retype:
             ret = self._shared_epoch_end_task(outputs, prefix, "retype")
             final_ret = {**final_ret, **ret}
-            acc = final_ret["retype_acc"]
-            loss = final_ret["retype_loss"]
         if self.rename:
             ret = self._shared_epoch_end_task(outputs, prefix, "rename")
             final_ret = {**final_ret, **ret}
-            acc = final_ret["rename_acc"]
-            loss = final_ret["rename_loss"]
         if self.retype and self.rename:
-            acc = final_ret["retype_acc"] + final_ret["rename_acc"]
-            loss = final_ret["retype_loss"] + final_ret["rename_loss"]
-            self.log(f"{prefix}_acc", acc, sync_dist=True)
-            self.log(f"{prefix}_loss", loss, sync_dist=True)
             # Evaluate rename accuracy on correctedly retyped samples
             retype_preds = torch.cat([x[f"retype_preds"] for x in outputs])
             retype_targets = torch.cat([x[f"retype_targets"] for x in outputs])
@@ -495,8 +487,7 @@ class TypeReconstructionModel(pl.LightningModule):
         targets = torch.cat([x[f"{task}_targets"] for x in outputs])
         loss = torch.cat([x[f"{task}_loss"] for x in outputs]).mean()
         self.log(f"{prefix}_{task}_loss", loss, sync_dist=True)
-        acc = accuracy(preds, targets)
-        self.log(f"{prefix}_{task}_acc", acc, sync_dist=True)
+        self.log(f"{prefix}_{task}_acc", accuracy(preds, targets), sync_dist=True)
         self.log(
             f"{prefix}_{task}_acc_macro",
             accuracy(
@@ -592,19 +583,8 @@ class TypeReconstructionModel(pl.LightningModule):
             f"{task}_preds": preds,
             f"{task}_targets": preds,
             "body_in_train_mask": body_in_train_mask,
-            f"{task}_acc": acc,
-            f"{task}_loss": loss
         }
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config
-        ["train"]["lr"])
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=0)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss",
-                "frequency": 1 # epoch
-            }
-        }
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.config["train"]["lr"])
+        return optimizer
