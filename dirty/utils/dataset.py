@@ -81,6 +81,7 @@ class Example:
         """
         # Always use disappear...
         use_disappear = True
+
         filter_dups = not prediction
         name = cf.decompiler.name
         raw_code = cf.decompiler.raw_code
