@@ -123,7 +123,9 @@ class Example:
                 if loc not in target.keys():
                     target[loc] = [Variable(Disappear(), "disappear", False)] * len(source[loc])
             else:
-                assert False, "This is harmful"
+                assert (
+                    False
+                ), "This is harmful and introduces a side channel from the ground truth to the source!"
                 if loc in source.keys() and loc not in target.keys():
                     del source[loc]
 
