@@ -140,6 +140,13 @@ def infer(config, model, cf, binary_file=None):
     #wat = trainer.predict(model, single_example_loader)
     #print(wat)
 
+    # HACK: Copy to gpu
+    for k, v in collated_example.items():
+        try:
+            collated_example[k] = v.to(model.device)
+        except:
+            pass
+
     with torch.no_grad():
         output = model(collated_example, return_non_best=True)
 
