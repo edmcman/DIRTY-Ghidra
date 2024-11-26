@@ -79,7 +79,9 @@ class Example:
     def from_cf(cls, cf: CollectedFunction, prediction=False, **kwargs):
         """Convert from a decoded CollectedFunction.
         """
-        use_disappear = prediction
+        # Always use disappear...
+        use_disappear = True
+
         filter_dups = not prediction
         name = cf.decompiler.name
         raw_code = cf.decompiler.raw_code
@@ -122,6 +124,9 @@ class Example:
                 if loc not in target.keys():
                     target[loc] = [Variable(Disappear(), "disappear", False)] * len(source[loc])
             else:
+                assert (
+                    False
+                ), "This is harmful and introduces a side channel from the ground truth to the source!"
                 if loc in source.keys() and loc not in target.keys():
                     del source[loc]
 
