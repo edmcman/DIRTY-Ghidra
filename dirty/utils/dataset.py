@@ -79,8 +79,7 @@ class Example:
     def from_cf(cls, cf: CollectedFunction, prediction=False, **kwargs):
         """Convert from a decoded CollectedFunction.
         """
-        # Never use disappear...
-        use_disappear = False
+        use_disappear = prediction
         filter_dups = not prediction
         name = cf.decompiler.name
         raw_code = cf.decompiler.raw_code
