@@ -53,8 +53,9 @@
     "grad_accum_step": 4,
     "max_epoch": 25,
     "lr": 1e-4,
-    "patience": 10,
+    "patience": 2,
     "check_val_every_n_epoch": 1,
+    "safety_margin": 0.01, # Increase this if you run out of GPU memory
   },
   "test": {
     "pred_file": "pred_mt.json",

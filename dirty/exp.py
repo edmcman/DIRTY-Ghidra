@@ -143,7 +143,7 @@ def train(args):
                 filename='{epoch}-{%s:.2f}' % monitor_var,
                 save_top_k=2,
                 mode="max"),
-            SafeBatchSizeFinder(safety_margin=0.1, init_val=batch_size, max_trials=30, steps_per_trial=3),
+            SafeBatchSizeFinder(safety_margin=config["train"].get("safety_margin", 0.1), init_val=batch_size, max_trials=30, steps_per_trial=3),
             LearningRateMonitor(logging_interval='epoch')
         ],
         check_val_every_n_epoch=config["train"]["check_val_every_n_epoch"],
