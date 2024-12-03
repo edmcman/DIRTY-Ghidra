@@ -15,6 +15,7 @@ Options:
     --extra-config=<str>                        extra config [default: {}]
     --percent=<float>                           percent of training data used [default: 1.0]
 """
+
 import json
 import os
 import random
@@ -29,7 +30,12 @@ import wandb
 from docopt import docopt
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, BatchSizeFinder, LearningRateMonitor
+from pytorch_lightning.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    BatchSizeFinder,
+    LearningRateMonitor,
+)
 from pytorch_lightning.tuner import Tuner
 from torch.utils.data import DataLoader
 
@@ -47,7 +53,11 @@ def train(args):
         config = util.update(config, extra_config)
 
     # dataloaders
-    batch_size = config["test"]["batch_size"] if args["--eval-ckpt"] else config["train"]["batch_size"]
+    batch_size = (
+        config["test"]["batch_size"]
+        if args["--eval-ckpt"]
+        else config["train"]["batch_size"]
+    )
     train_set = Dataset(
         config["data"]["train_file"], config["data"], percent=float(args["--percent"])
     )
@@ -58,7 +68,7 @@ def train(args):
 
     # Define DataModule for batch finding.
     class LitDataModule(LightningDataModule):
-        def __init__(self, batch_size = batch_size):
+        def __init__(self, batch_size=batch_size):
             super().__init__()
             self.batch_size = batch_size
 
@@ -122,7 +132,9 @@ def train(args):
             )
             self.optimal_batch_size = new_batch_size
             # This adjusts the data module batch_size.
-            pl.tuner.batch_size_scaling._adjust_batch_size(trainer, value=new_batch_size)
+            pl.tuner.batch_size_scaling._adjust_batch_size(
+                trainer, value=new_batch_size
+            )
             pl.tuner.batch_size_scaling._reset_dataloaders(trainer)
             trainer._active_loop.reset()
 
@@ -140,15 +152,23 @@ def train(args):
             # Save all checkpoints that improve accuracy
             ModelCheckpoint(
                 monitor=monitor_var,
-                filename='{epoch}-{%s:.2f}' % monitor_var,
+                filename="{epoch}-{%s:.2f}" % monitor_var,
                 save_top_k=2,
-                mode="max"),
-            SafeBatchSizeFinder(safety_margin=config["train"].get("safety_margin", 0.1), init_val=batch_size, max_trials=30, steps_per_trial=3),
-            LearningRateMonitor(logging_interval='epoch')
+                mode="max",
+            ),
+            SafeBatchSizeFinder(
+                safety_margin=config["train"].get("safety_margin", 0.1),
+                init_val=batch_size,
+                max_trials=30,
+                steps_per_trial=3,
+            ),
+            LearningRateMonitor(logging_interval="epoch"),
         ],
         check_val_every_n_epoch=config["train"]["check_val_every_n_epoch"],
         accumulate_grad_batches=config["train"]["grad_accum_step"],
-        limit_test_batches=config["test"]["limit"] if "limit" in config["test"] else 1.0
+        limit_test_batches=(
+            config["test"]["limit"] if "limit" in config["test"] else 1.0
+        ),
     )
 
     datamodule = LitDataModule(batch_size=batch_size)
