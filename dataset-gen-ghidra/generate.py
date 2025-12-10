@@ -189,9 +189,9 @@ class Runner(object):
                 prefix = f"{file_hash.hexdigest()}_{binary}"
                 new_env["PREFIX"] = prefix
                 # Try stripping first, if it fails return
-                subprocess.call(["cp", file_path, stripped.name])
+                subprocess.check_call(["cp", file_path, stripped.name])
                 try:
-                    subprocess.call(["strip", stripped.name])
+                    subprocess.check_call(["strip", stripped.name])
                 except subprocess.CalledProcessError:
                     if self.verbose:
                         print(f"Could not strip {prefix}, skipping.")
