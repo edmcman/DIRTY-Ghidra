@@ -19,6 +19,9 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Test dataset generator
+        run: python -m unittest discover -s dataset-gen-ghidra/tests -v
+
       - name: Generate dataset
         run: |
           set -ex
@@ -29,6 +32,7 @@ jobs:
           cd $GITHUB_WORKSPACE/dataset-gen-ghidra
           python generate.py --verbose --ghidra $GHIDRA_INSTALL_DIR/support/analyzeHeadless -t 1 -b $DATASET_DIR -o $DATA_DIR/unprocessed
           cd $DATA_DIR/unprocessed && python $GITHUB_WORKSPACE/dataset-gen-ghidra/gen_names.py $DATA_DIR/unprocessed
+          test -s files.txt
         env:
           DATASET_DIR: ${{ runner.temp }}/dataset
           DATA_DIR: ${{ runner.temp }}/data
@@ -62,8 +66,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Install huggingface-cli
-        run: pip install huggingface_hub[cli]
+      - name: Install Hugging Face CLI
+        run: python -m pip install huggingface_hub
 
       - name: Cache model files
         uses: actions/cache@v4
@@ -72,7 +76,7 @@ jobs:
           key: hf-model-dl
 
       - name: Download model files
-        run: huggingface-cli download --repo-type model ejschwartz/dirty-ghidra --local-dir $MODEL_DL_DIR && cp -R $MODEL_DL_DIR/data1 $GITHUB_WORKSPACE/dirty/data1
+        run: hf download --repo-type model ejschwartz/dirty-ghidra --local-dir $MODEL_DL_DIR && cp -R $MODEL_DL_DIR/data1 $GITHUB_WORKSPACE/dirty/data1
         env:
           MODEL_DL_DIR: ${{ runner.temp }}/model-dl
 
