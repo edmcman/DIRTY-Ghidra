@@ -10,5 +10,6 @@ ujson~=3.2.0
 wandb
 webdataset~=0.2.100
 pyelftools~=0.29
+psutil
 jsonlines
 numpy>=1.20,<2.0

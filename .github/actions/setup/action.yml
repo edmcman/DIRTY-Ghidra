@@ -16,6 +16,7 @@ runs:
       with:
         # Ghidrathon 4 uses the pre-PyGhidra script provider API.
         version: '11.2.1'
+        auth_token: ${{ github.token }}
 
     - name: Upgrade pip
       shell: bash
