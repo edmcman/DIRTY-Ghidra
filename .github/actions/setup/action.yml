@@ -13,6 +13,9 @@ runs:
         distribution: 'zulu' # See 'Supported distributions' for available options
         java-version: '21'
     - uses: antoniovazquezblanco/setup-ghidra@v2.0.4
+      with:
+        # Ghidrathon 4 uses the pre-PyGhidra script provider API.
+        version: '11.2.1'
 
     - name: Upgrade pip
       shell: bash
@@ -20,7 +23,9 @@ runs:
 
     - name: Install apt dependencies
       shell: bash
-      run: sudo apt-get install -y pkg-config libsentencepiece-dev libprotobuf-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libsentencepiece-dev libprotobuf-dev
 
     - name: Install dependencies
       shell: bash
