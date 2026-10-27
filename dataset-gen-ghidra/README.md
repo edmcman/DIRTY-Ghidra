@@ -20,7 +20,21 @@ When writing our paper, the original DIRTY team were kind enough to provide the 
 Use
 ===
 To generate the dataset, run the [generate.py](generate.py) script:
-`python3 generate.py --ghidra PATH_TO_GHIDRA_ANALYZEHEADLESS -t NUM_THREADS -n [NUM_FILES|None] -b BINARIES_DIR -o OUTPUT_DIR`
+`python3 generate.py --ghidra PATH_TO_GHIDRA_ANALYZEHEADLESS -t NUM_THREADS -n [NUM_FILES|None] -b BINARIES_DIR -o OUTPUT_DIR [--project-dir PROJECT_DIR]`
+
+`--project-dir` selects the parent directory for temporary Ghidra projects and defaults
+to `OUTPUT_DIR`. The script creates this directory if needed. Each invocation uses
+its own temporary subdirectory, which is removed after the process exits, including
+on failure. The source binary directory can be read-only.
+
+If Ghidra times out or exits with a nonzero status, the script reports the binary,
+stage, and captured output, skips the remaining stages for that binary, and continues
+with other binaries. Timed-out process groups receive SIGTERM, followed by SIGKILL
+if needed after five seconds, before project cleanup.
+
+Run the orchestration regression tests with
+`python -m unittest discover -s dataset-gen-ghidra/tests -v`.
+These tests do not require Ghidra or ELF parsing.
 
 This script creates a `bins/` and `types/` directory in `OUTPUT_DIR` and generates a `.jsonl` file in both directories for each binary in `BINARIES_DIR`.
 The file is in the [JSON Lines](http://jsonlines.org) format, and each entry corresponds to a

@@ -4,10 +4,10 @@ import argparse
 import subprocess
 import os
 import signal
+import sys
 import errno
 import hashlib
 import tempfile as tf
-import shutil
 import pickle
 
 
@@ -30,13 +30,14 @@ class Runner(object):
         self.verbose = args.verbose
         self.num_threads = args.num_threads
         self.timeout = args.timeout
-        self.project_dir = args.project_dir or self.output_dir
+        self.project_dir = os.path.abspath(args.project_dir or self.output_dir)
 
         self.env = os.environ.copy()
 
         self.env["IDALOG"] = "/dev/stdout"
         self.env["OUTPUT_DIR"] = self.output_dir
 
+        self.make_dir(self.project_dir)
         self.make_dir(self.output_dir)
         self.make_dir(os.path.join(self.output_dir, "types"))
         self.make_dir(os.path.join(self.output_dir, "bins"))
@@ -93,51 +94,85 @@ class Runner(object):
             if e.errno != errno.EEXIST:
                 raise
 
-    def run_decompiler(self, env, project_parent_dir, file_path, script, timeout=None):
-        """Run a decompiler script.
+    @staticmethod
+    def stop_decompiler(process):
+        """Stop the process group and drain pipes before project cleanup."""
+        def signal_group(sig):
+            try:
+                # start_new_session=True makes the child PID its process group ID.
+                os.killpg(process.pid, sig)
+            except ProcessLookupError:
+                pass
 
-        Keyword arguments:
-        project_parent_dir -- the directory where the Ghidra project will be created
-        file_path -- the binary file to be decompiled
-        env -- an os.environ mapping, useful for passing arguments
-        script -- the script file to run
-        timeout -- timeout in seconds (default no timeout)
-        """
-        script_dir = script[:(script.rfind("/"))]
-        script_name = script.split("/")[-1]
-        # Use basename of the file as a project name suffix (unique per file)
-        temp_proj_name = "__".join(os.path.basename(file_path).split("/"))
-
-        # Create and use a project inside project_parent_dir so Ghidra
-        # does not create project files next to the binary (which might be read-only)
-        ghidracall = [
-            self.ghidra,
-            project_parent_dir,
-            temp_proj_name,
-            '-import',
-            file_path,
-            '-postScript', script_name, file_path + ".p", "-scriptPath", script_dir,
-            '-max-cpu', "1", '-deleteProject']
-        if self.verbose:
-            print(f"Running {ghidracall}")
-        p = None
+        signal_group(signal.SIGTERM)
         try:
-            p = subprocess.Popen(ghidracall, env=env, start_new_session=True,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate(timeout=timeout)
+            output = process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            signal_group(signal.SIGKILL)
+            return process.communicate()
+        # A descendant can outlive the leader after closing its output pipes.
+        signal_group(signal.SIGKILL)
+        return output
+
+    def run_decompiler(self, env, project_parent_dir, file_path, script, timeout=None):
+        """Run a stage in an isolated project directory; return whether it succeeded."""
+        script_dir, script_name = os.path.split(script)
+        binary = env.get("PREFIX", file_path)
+        with tf.TemporaryDirectory(prefix="ghidra-", dir=project_parent_dir) as project_dir:
+            ghidracall = [
+                self.ghidra, project_dir, "project", '-import', file_path,
+                '-postScript', script_name, file_path + ".p", "-scriptPath", script_dir,
+                '-max-cpu', "1", '-deleteProject',
+            ]
             if self.verbose:
-                print(stdout.decode())
-                print(stderr.decode())
-        except subprocess.TimeoutExpired as e:
-            print(f"Timed out while running {ghidracall}")
-            if p is not None:
-                os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-            # Clean up the project folder which GHIDRA created
-            shutil.rmtree(os.path.join(project_parent_dir, temp_proj_name), ignore_errors=True)
-        except subprocess.CalledProcessError as e:
-            shutil.rmtree(os.path.join(project_parent_dir, temp_proj_name), ignore_errors=True)
-            if self.verbose:
-                print(e.output.decode())
+                print(f"Running {ghidracall}")
+            try:
+                process = subprocess.Popen(
+                    ghidracall, env=env, start_new_session=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+            except OSError as e:
+                print(f"Ghidra {script_name} failed for {binary}: {e}; skipping binary",
+                      file=sys.stderr)
+                return False
+
+            timed_out = False
+            try:
+                stdout, stderr = process.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                stdout, stderr = self.stop_decompiler(process)
+            except (KeyboardInterrupt, SystemExit):
+                self.stop_decompiler(process)
+                raise
+
+            success = not timed_out and process.returncode == 0
+            if not success:
+                reason = (
+                    f"timed out after {timeout}s" if timed_out
+                    else f"exited with status {process.returncode}"
+                )
+                print(f"Ghidra {script_name} {reason} for {binary}; skipping binary",
+                      file=sys.stderr)
+            if self.verbose or not success:
+                stream = sys.stdout if success else sys.stderr
+                for output in (stdout, stderr):
+                    if output:
+                        print(output.decode(errors="replace"), file=stream)
+            return success
+
+    def run_stage(self, env, file_path, script, variables):
+        """Write the stage's sidecar and remove it even if execution fails."""
+        pickle_file = file_path + ".p"
+        try:
+            with open(pickle_file, "wb") as f:
+                pickle.dump(variables, f)
+            return self.run_decompiler(
+                env, self.project_dir, file_path, script, timeout=self.timeout,
+            )
+        finally:
+            if os.path.exists(pickle_file):
+                os.remove(pickle_file)
 
     def extract_dwarf_var_names(self, filepath:str) -> Optional[set]:
         """
@@ -215,26 +250,19 @@ class Runner(object):
 
                     var_set = self.extract_dwarf_var_names(orig.name)
                     if var_set:
-                        pickle_file = orig.name + ".p"
-                        pickle.dump(var_set, open(pickle_file, 'wb'))
-                        self.run_decompiler(new_env, self.project_dir, orig.name, self.COLLECT, timeout=self.timeout)
-                        os.remove(pickle_file)
+                        if not self.run_stage(new_env, orig.name, self.COLLECT, var_set):
+                            return
                     else:
                         if self.verbose:
                             print(f"Unable to collect debug information for {prefix}")
                 # Dump trees
                 if self.verbose:
                     print(f"Dumping trees")
-                pickle_file = stripped.name + ".p"
-                pickle.dump(set(), open(pickle_file, 'wb'))
-                self.run_decompiler(new_env, self.project_dir, stripped.name, self.DUMP_TREES, timeout=self.timeout)
-                os.remove(pickle_file)
+                self.run_stage(new_env, stripped.name, self.DUMP_TREES, set())
 
     def run(self):
         # File counts for progress output
 
-        # Create a temporary directory, since the decompiler makes a lot of
-        # additional files that we can't clean up from here
         with Pool(self.num_threads) as pool:
             for p in tqdm(
                     pool.imap_unordered(self.run_one, self.binaries),
